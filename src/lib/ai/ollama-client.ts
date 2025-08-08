@@ -8,8 +8,8 @@ interface OllamaResponse {
     private model: string;
   
     constructor() {
-      this.baseUrl = process.env.OLLAMA_BASE_URL || 'http://localhost:11434';
-      this.model = process.env.OLLAMA_MODEL || 'llama3.2';
+      this.baseUrl = process.env.OLLAMA_BASE_URL || 'http://127.0.0.1:11434';
+      this.model = process.env.OLLAMA_MODEL|| 'gemma3:12b';
     }
   
     async generateForm(prompt: string) {
@@ -33,6 +33,7 @@ interface OllamaResponse {
   User prompt: ${prompt}`;
   
       try {
+        console.log("Generating Form.....");
         const response = await fetch(`${this.baseUrl}/api/generate`, {
           method: 'POST',
           headers: {
