@@ -82,20 +82,80 @@ A modern, AI-powered form builder built with Next.js, Prisma, and Ollama. Create
 
 ```
 devformsv1/
-  ├── src/
-  │   ├── app/                # Next.js app directory (pages, API routes)
-  │   ├── components/         # React UI components
-  │   │   └── form-builder/   # Form builder UI and logic
-  │   ├── lib/                # Utilities, AI, and DB logic
-  │   ├── types/              # TypeScript types
-  │   └── generated/          # Generated Prisma client
-  ├── prisma/
-  │   └── schema.prisma       # Prisma schema
-  ├── public/                 # Static assets
-  ├── package.json
-  ├── next.config.ts
-  ├── tsconfig.json
-  └── README.md
+├── README.md
+├── package.json
+├── package-lock.json
+├── next.config.js
+├── tailwind.config.ts
+├── tsconfig.json
+├── .env                                    # Environment variables
+├── .gitignore
+├── 
+├── prisma/
+│   └── schema.prisma                       # Database schema
+├── 
+├── public/
+│   ├── next.svg
+│   └── vercel.svg
+├── 
+└── src/
+    ├── app/
+    │   ├── globals.css                     # Global styles
+    │   ├── layout.tsx                      # Root layout
+    │   ├── page.tsx                        # Home page with navigation
+    │   │
+    │   ├── create/
+    │   │   └── page.tsx                    # AI form generation page
+    │   │
+    │   ├── builder/
+    │   │   └── [id]/
+    │   │       └── page.tsx                # Form builder/editor page
+    │   │
+    │   ├── form/
+    │   │   └── [id]/
+    │   │       └── page.tsx                # Public form viewing/submission page
+    │   │
+    │   └── api/
+    │       ├── ai/
+    │       │   └── generate-form/
+    │       │       └── route.ts            # AI form generation API
+    │       │
+    │       └── forms/
+    │           ├── route.ts                # Create new forms API
+    │           └── [id]/
+    │               ├── route.ts            # Get/Update specific form API
+    │               └── submit/
+    │                   └── route.ts        # Form submission API
+    │
+    ├── components/
+    │   ├── form-builder/
+    │   │   ├── PromptInput.tsx             # AI prompt input component
+    │   │   ├── FormPreview.tsx             # Generated form preview
+    │   │   ├── FormBuilderSidebar.tsx      # Question type sidebar
+    │   │   ├── FormSettings.tsx            # Form title/description/theme
+    │   │   ├── QuestionEditor.tsx          # Drag-drop question container
+    │   │   ├── QuestionTile.tsx            # Individual question editor (Google Forms style)
+    │   │   └── LivePreview.tsx             # Real-time form preview
+    │   │
+    │   ├── form-renderer/                  # (Placeholder - not created yet)
+    │   │
+    │   ├── sharing/                        # (Placeholder - not created yet)
+    │   │
+    │   └── ui/
+    │       └── LoadingState.tsx            # Loading spinner component
+    │
+    ├── lib/
+    │   ├── ai/
+    │   │   ├── ollama-client.ts            # Ollama API client
+    │   │   └── form-generator.ts           # AI form generation service
+    │   │
+    │   ├── db/
+    │   │   └── index.ts                    # Prisma database client
+    │   │
+    │   └── utils/                          # (Placeholder - not created yet)
+    │
+    └── types/
+        └── form.ts                         # TypeScript type definitions
 ```
 
 ### Key Files & Folders
