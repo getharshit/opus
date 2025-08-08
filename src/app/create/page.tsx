@@ -64,7 +64,7 @@ export default function CreateFormPage() {
       }
 
       const savedForm = await response.json();
-      // Redirect to form builder or sharing page
+      // Redirect to form builder
       window.location.href = `/builder/${savedForm.id}`;
     } catch (err) {
       setError(err instanceof Error ? err.message : "Failed to save form");
