@@ -39,6 +39,49 @@ export default function CreateFormPage() {
     }
   };
 
+  const handleQuickShare = async () => {
+    if (!generatedForm) return;
+
+    try {
+      const response = await fetch("/api/forms", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          title: generatedForm.title,
+          description: generatedForm.description,
+          fields: generatedForm.fields,
+          theme: {
+            primaryColor: "#3b82f6",
+            fontFamily: "Inter",
+          },
+        }),
+      });
+
+      if (!response.ok) {
+        throw new Error("Failed to save form");
+      }
+
+      const savedForm = await response.json();
+
+      // Copy share link to clipboard immediately
+      const shareUrl = `${window.location.origin}/form/${savedForm.id}`;
+      await navigator.clipboard.writeText(shareUrl);
+
+      alert(`Form saved! Share link copied to clipboard:\n${shareUrl}`);
+
+      // Optionally redirect to builder
+      setTimeout(() => {
+        window.location.href = `/builder/${savedForm.id}`;
+      }, 2000);
+    } catch (err) {
+      setError(
+        err instanceof Error ? err.message : "Failed to save and share form"
+      );
+    }
+  };
+
   const handleSaveForm = async () => {
     if (!generatedForm) return;
 
@@ -120,6 +163,13 @@ export default function CreateFormPage() {
                     className="flex-1 bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700 transition-colors font-medium"
                   >
                     Save & Continue Editing
+                  </button>
+
+                  <button
+                    onClick={handleQuickShare}
+                    className="px-6 py-3 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors font-medium"
+                  >
+                    Save & Share
                   </button>
 
                   <button

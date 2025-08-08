@@ -8,6 +8,7 @@ import QuestionEditor from "@/components/form-builder/QuestionEditor";
 import LivePreview from "@/components/form-builder/LivePreview";
 import FormSettings from "@/components/form-builder/FormSettings";
 import LoadingState from "@/components/ui/LoadingState";
+import ShareModal from "@/components/sharing/ShareModal";
 
 export default function FormBuilderPage() {
   const params = useParams();
@@ -17,6 +18,7 @@ export default function FormBuilderPage() {
   const [isLoading, setIsLoading] = useState(true);
   const [activeField, setActiveField] = useState<string | null>(null);
   const [showPreview, setShowPreview] = useState(false);
+  const [showShareModal, setShowShareModal] = useState(false);
 
   useEffect(() => {
     loadForm();
@@ -146,6 +148,18 @@ export default function FormBuilderPage() {
 
             <div className="flex items-center gap-3">
               <button
+                onClick={() => (window.location.href = `/dashboard/${formId}`)}
+                className="px-4 py-2 bg-purple-600 text-white text-sm rounded-md hover:bg-purple-700 transition-colors"
+              >
+                View Responses
+              </button>
+              <button
+                onClick={() => setShowShareModal(true)}
+                className="px-4 py-2 bg-green-600 text-white text-sm rounded-md hover:bg-green-700 transition-colors"
+              >
+                Share Form
+              </button>
+              <button
                 onClick={() => setShowPreview(!showPreview)}
                 className="px-4 py-2 text-sm border border-gray-300 rounded-md hover:bg-gray-50 transition-colors"
               >
@@ -196,6 +210,14 @@ export default function FormBuilderPage() {
           )}
         </div>
       </div>
+      {showShareModal && (
+        <ShareModal
+          isOpen={showShareModal}
+          onClose={() => setShowShareModal(false)}
+          formId={formId}
+          formTitle={form.title}
+        />
+      )}
     </div>
   );
 }
