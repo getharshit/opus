@@ -51,3 +51,38 @@ export async function PUT(
     );
   }
 }
+
+export async function DELETE(
+  request: NextRequest,
+  { params }: { params: { id: string } }
+) {
+  try {
+    // Check if form exists first
+    const existingForm = await prisma.form.findUnique({
+      where: { id: params.id },
+    });
+
+    if (!existingForm) {
+      return NextResponse.json(
+        { error: 'Form not found' },
+        { status: 404 }
+      );
+    }
+
+    // Delete the form (responses will be cascade deleted due to foreign key)
+    await prisma.form.delete({
+      where: { id: params.id },
+    });
+
+    return NextResponse.json(
+      { message: 'Form deleted successfully' },
+      { status: 200 }
+    );
+  } catch (error) {
+    console.error('Form delete error:', error);
+    return NextResponse.json(
+      { error: 'Failed to delete form' },
+      { status: 500 }
+    );
+  }
+}

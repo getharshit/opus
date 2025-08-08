@@ -6,7 +6,7 @@ export async function GET(
   { params }: { params: { id: string } }
 ) {
   try {
-    const formId = params.id;
+    const formId = (await params).id;
 
     const responses = await prisma.response.findMany({
       where: { formId },

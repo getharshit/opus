@@ -9,6 +9,9 @@ import LivePreview from "@/components/form-builder/LivePreview";
 import FormSettings from "@/components/form-builder/FormSettings";
 import LoadingState from "@/components/ui/LoadingState";
 import ShareModal from "@/components/sharing/ShareModal";
+import FormBuilderStepper, {
+  BuilderStep,
+} from "@/components/form-builder/FormBuilderStepper";
 
 export default function FormBuilderPage() {
   const params = useParams();
@@ -19,6 +22,7 @@ export default function FormBuilderPage() {
   const [activeField, setActiveField] = useState<string | null>(null);
   const [showPreview, setShowPreview] = useState(false);
   const [showShareModal, setShowShareModal] = useState(false);
+  const [currentStep, setCurrentStep] = useState<BuilderStep>("build");
 
   useEffect(() => {
     loadForm();
@@ -109,6 +113,127 @@ export default function FormBuilderPage() {
     updateForm({ fields: result });
   };
 
+  const handleStepChange = (step: BuilderStep) => {
+    setCurrentStep(step);
+    // Auto-open share modal when user clicks on Share step
+    if (step === "share") {
+      setShowShareModal(true);
+    }
+  };
+
+  const renderStepContent = () => {
+    switch (currentStep) {
+      case "build":
+        return (
+          <div className="grid grid-cols-12 gap-6">
+            {/* Sidebar */}
+            <div className="col-span-3">
+              <FormBuilderSidebar onAddField={addField} />
+            </div>
+
+            {/* Main Editor */}
+            <div className={`${showPreview ? "col-span-5" : "col-span-9"}`}>
+              <div className="space-y-4">
+                {form && (
+                  <>
+                    <FormSettings form={form} onUpdate={updateForm} />
+
+                    <QuestionEditor
+                      fields={form.fields}
+                      activeField={activeField}
+                      onFieldSelect={setActiveField}
+                      onFieldUpdate={updateField}
+                      onFieldDelete={deleteField}
+                      onReorder={reorderFields}
+                    />
+                  </>
+                )}
+              </div>
+            </div>
+
+            {/* Live Preview */}
+            {showPreview && (
+              <div className="col-span-4">
+                <div className="sticky top-24">
+                  {form && <LivePreview form={form} />}
+                </div>
+              </div>
+            )}
+          </div>
+        );
+
+      case "design":
+        return (
+          <div className="max-w-4xl mx-auto">
+            <div className="text-center py-16">
+              <div className="bg-white rounded-lg shadow-md p-8">
+                <h2 className="text-2xl font-semibold text-gray-900 mb-4">
+                  🎨 Design Customization
+                </h2>
+                <p className="text-gray-600 mb-6">
+                  Customize your form appearance, themes, and branding.
+                </p>
+                <div className="text-sm text-blue-600 bg-blue-50 p-4 rounded-lg">
+                  Coming soon: Advanced theme customization, custom CSS, brand
+                  colors, and more!
+                </div>
+              </div>
+            </div>
+          </div>
+        );
+
+      case "integrate":
+        return (
+          <div className="max-w-4xl mx-auto">
+            <div className="text-center py-16">
+              <div className="bg-white rounded-lg shadow-md p-8">
+                <h2 className="text-2xl font-semibold text-gray-900 mb-4">
+                  🔗 Integrations
+                </h2>
+                <p className="text-gray-600 mb-6">
+                  Connect your form with external platforms and services.
+                </p>
+                <div className="text-sm text-blue-600 bg-blue-50 p-4 rounded-lg">
+                  Coming soon: Zapier, Slack, Email notifications, Webhooks, CRM
+                  integrations!
+                </div>
+              </div>
+            </div>
+          </div>
+        );
+
+      case "share":
+        return (
+          <div className="max-w-4xl mx-auto">
+            <div className="text-center py-16">
+              <div className="bg-white rounded-lg shadow-md p-8">
+                <h2 className="text-2xl font-semibold text-gray-900 mb-4">
+                  📤 Share Your Form
+                </h2>
+                <p className="text-gray-600 mb-6">
+                  Your form is ready! Share it with your audience.
+                </p>
+                <div className="space-y-4">
+                  <button
+                    onClick={() => setShowShareModal(true)}
+                    className="px-6 py-3 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors font-medium"
+                  >
+                    Open Share Options
+                  </button>
+                  <div className="text-sm text-gray-500">
+                    Get shareable links, QR codes, and embed options
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        );
+
+      default:
+        return null;
+    }
+  };
+
   if (isLoading) {
     return <LoadingState />;
   }
@@ -153,12 +278,7 @@ export default function FormBuilderPage() {
               >
                 View Responses
               </button>
-              <button
-                onClick={() => setShowShareModal(true)}
-                className="px-4 py-2 bg-green-600 text-white text-sm rounded-md hover:bg-green-700 transition-colors"
-              >
-                Share Form
-              </button>
+
               <button
                 onClick={() => setShowPreview(!showPreview)}
                 className="px-4 py-2 text-sm border border-gray-300 rounded-md hover:bg-gray-50 transition-colors"
@@ -177,43 +297,26 @@ export default function FormBuilderPage() {
         </div>
       </header>
 
-      <div className="max-w-7xl mx-auto px-4 py-6">
-        <div className="grid grid-cols-12 gap-6">
-          {/* Sidebar */}
-          <div className="col-span-3">
-            <FormBuilderSidebar onAddField={addField} />
-          </div>
+      {/* Stepper */}
+      <FormBuilderStepper
+        currentStep={currentStep}
+        onStepChange={handleStepChange}
+      />
 
-          {/* Main Editor */}
-          <div className={`${showPreview ? "col-span-5" : "col-span-9"}`}>
-            <div className="space-y-4">
-              <FormSettings form={form} onUpdate={updateForm} />
+      {/* Main Content */}
+      <div className="max-w-7xl mx-auto px-4 py-6">{renderStepContent()}</div>
 
-              <QuestionEditor
-                fields={form.fields}
-                activeField={activeField}
-                onFieldSelect={setActiveField}
-                onFieldUpdate={updateField}
-                onFieldDelete={deleteField}
-                onReorder={reorderFields}
-              />
-            </div>
-          </div>
-
-          {/* Live Preview */}
-          {showPreview && (
-            <div className="col-span-4">
-              <div className="sticky top-24">
-                <LivePreview form={form} />
-              </div>
-            </div>
-          )}
-        </div>
-      </div>
+      {/* Share Modal */}
       {showShareModal && (
         <ShareModal
           isOpen={showShareModal}
-          onClose={() => setShowShareModal(false)}
+          onClose={() => {
+            setShowShareModal(false);
+            // If user was on share step, keep them there
+            if (currentStep === "share") {
+              // Don't change step
+            }
+          }}
           formId={formId}
           formTitle={form.title}
         />

@@ -31,3 +31,13 @@ export interface FormField {
     submittedAt: Date;
     ipAddress?: string;
   }
+
+  export interface FormListItem {
+    id: string;
+    title: string;
+    description?: string;
+    createdAt: Date;
+    updatedAt: Date;
+    responseCount: number;
+    theme: FormTheme;
+  }
