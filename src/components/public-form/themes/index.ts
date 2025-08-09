@@ -3,11 +3,10 @@
 // Core exports
 export * from './types';
 export * from './defaultTheme';
-export * from './ThemeProvider';
 export * from './cssProperties';
 export * from './themeReducer';
 
-// Main theme system exports
+// Theme Provider exports
 export {
   ThemeProvider,
   useTheme,
@@ -20,29 +19,12 @@ export {
   withTheme,
 } from './ThemeProvider';
 
-export {
-  cssPropertyUtils,
-  CSSPropertiesManager,
-  DebouncedCSSManager,
-  themeToCSSProperties,
-} from './cssProperties';
+// Import for themeUtils only (not re-exporting to avoid conflicts)
+import { cssPropertyUtils } from './cssProperties';
+import { themeValidation, themePersistence } from './themeReducer';
+import { createDefaultTheme, createDarkTheme } from './defaultTheme';
 
-export {
-  defaultTheme,
-  darkTheme,
-  createDefaultTheme,
-  createDarkTheme,
-} from './defaultTheme';
-
-export {
-  themeValidation,
-  themePersistence,
-  themeActions,
-  themeReducer,
-  initialThemeState,
-} from './themeReducer';
-
-// Utility functions
+// Utility functions - this is a new export, not conflicting
 export const themeUtils = {
   // Quick theme application
   applyTheme: cssPropertyUtils.applyTheme,

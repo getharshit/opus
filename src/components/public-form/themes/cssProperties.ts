@@ -405,4 +405,3 @@ export const cssPropertyUtils = {
     return CSSPropertiesManager.getInstance().validateProperties(properties);
   },
 };
-
