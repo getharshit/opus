@@ -1,23 +1,26 @@
-'use client';
+"use client";
 
-import React, { useState, useEffect } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
-import { ExtendedForm, FormState, ProgressConfig } from '../types';
-import { useFormContext } from '../providers/FormProvider';
-import { FormQuestion } from '../components/FormQuestion';
-import { StepIndicator } from '../components/StepIndicator';
-import { AnimatedButton, AnimatedProgressIndicator } from '../animation/components';
-import { useStepGrouping } from '../hooks/useStepGrouping';
-import { useMultiStepProgress } from '../hooks/useMultiStepProgress';
-import { 
-  ChevronLeft, 
-  ChevronRight, 
-  Save, 
+import React, { useState, useEffect } from "react";
+import { motion, AnimatePresence } from "framer-motion";
+import { ExtendedForm, FormState, ProgressConfig } from "../types";
+import { useFormContext } from "../providers/FormProvider";
+import { FormQuestion } from "../components/FormQuestion";
+import { StepIndicator } from "../components/StepIndicator";
+import {
+  AnimatedButton,
+  AnimatedProgressIndicator,
+} from "../animation/components";
+import { useStepGrouping } from "../hooks/useStepGrouping";
+import { useMultiStepProgress } from "../hooks/useMultiStepProgress";
+import {
+  ChevronLeft,
+  ChevronRight,
+  Save,
   AlertTriangle,
   CheckCircle,
   Loader,
-  Sparkles
-} from 'lucide-react';
+  Sparkles,
+} from "lucide-react";
 
 interface MultiStepLayoutProps {
   form: ExtendedForm;
@@ -29,23 +32,21 @@ interface MultiStepLayoutProps {
 export const MultiStepLayout: React.FC<MultiStepLayoutProps> = ({
   form,
   state,
-  progressConfig
+  progressConfig,
 }) => {
-  const {
-    formMethods,
-    formState,
-    submitForm
-  } = useFormContext();
+  const { formMethods, formState, submitForm, validateField } =
+    useFormContext();
 
-  const [direction, setDirection] = useState<'forward' | 'backward'>('forward');
+  const [direction, setDirection] = useState<"forward" | "backward">("forward");
   const [isValidating, setIsValidating] = useState(false);
   const [showExitIntent, setShowExitIntent] = useState(false);
   const [showProgressRestored, setShowProgressRestored] = useState(false);
 
-  // Get step grouping (simplified without conditional logic)
+  // Get step grouping
   const { steps, totalSteps } = useStepGrouping({
     fields: form.fields,
-    fieldGroups: form.fieldGroups
+    fieldGroups: form.fieldGroups,
+    formData: formMethods.getValues(),
   });
 
   // Multi-step progress management
@@ -59,6 +60,7 @@ export const MultiStepLayout: React.FC<MultiStepLayoutProps> = ({
     goToStep,
     nextStep,
     previousStep,
+    markStepCompleted,
     setStepError,
     saveProgress,
     loadProgress,
@@ -66,11 +68,14 @@ export const MultiStepLayout: React.FC<MultiStepLayoutProps> = ({
     isStepVisited,
     hasStepError,
     getStepErrors,
-    canAccessStep
+    canAccessStep,
   } = useMultiStepProgress({
     formId: form.id,
     totalSteps,
-    formMethods
+    formMethods,
+    onProgressChange: (progress) => {
+      // Handle progress change if needed
+    },
   });
 
   const currentStep = steps[currentStepIndex];
@@ -89,17 +94,24 @@ export const MultiStepLayout: React.FC<MultiStepLayoutProps> = ({
   // Exit intent detection
   useEffect(() => {
     const handleMouseLeave = (e: MouseEvent) => {
-      if (e.clientY <= 0 && completionPercentage > 10 && completionPercentage < 100) {
+      if (
+        e.clientY <= 0 &&
+        completionPercentage > 10 &&
+        completionPercentage < 100
+      ) {
         setShowExitIntent(true);
       }
     };
 
-    document.addEventListener('mouseleave', handleMouseLeave);
-    return () => document.removeEventListener('mouseleave', handleMouseLeave);
+    document.addEventListener("mouseleave", handleMouseLeave);
+    return () => document.removeEventListener("mouseleave", handleMouseLeave);
   }, [completionPercentage]);
 
   // Validate current step
-  const validateCurrentStep = async (): Promise<{ isValid: boolean; errors?: string[] }> => {
+  const validateCurrentStep = async (): Promise<{
+    isValid: boolean;
+    errors?: string[];
+  }> => {
     if (!currentStep) return { isValid: false };
 
     setIsValidating(true);
@@ -127,9 +139,9 @@ export const MultiStepLayout: React.FC<MultiStepLayoutProps> = ({
   // Navigation handlers
   const handleNextStep = async () => {
     const validationResults = await validateCurrentStep();
-    
+
     if (validationResults.isValid) {
-      setDirection('forward');
+      setDirection("forward");
       if (isLastStep) {
         await submitForm();
       } else {
@@ -141,14 +153,14 @@ export const MultiStepLayout: React.FC<MultiStepLayoutProps> = ({
   };
 
   const handlePreviousStep = async () => {
-    setDirection('backward');
+    setDirection("backward");
     await previousStep();
   };
 
   const handleStepClick = async (stepIndex: number) => {
     if (!canAccessStep(stepIndex)) return;
 
-    setDirection(stepIndex > currentStepIndex ? 'forward' : 'backward');
+    setDirection(stepIndex > currentStepIndex ? "forward" : "backward");
     await goToStep(stepIndex);
   };
 
@@ -160,21 +172,21 @@ export const MultiStepLayout: React.FC<MultiStepLayoutProps> = ({
 
   // Step transition variants
   const stepVariants = {
-    enter: (direction: 'forward' | 'backward') => ({
-      x: direction === 'forward' ? 300 : -300,
+    enter: (direction: "forward" | "backward") => ({
+      x: direction === "forward" ? 300 : -300,
       opacity: 0,
-      scale: 0.98
+      scale: 0.98,
     }),
     center: {
       x: 0,
       opacity: 1,
-      scale: 1
+      scale: 1,
     },
-    exit: (direction: 'forward' | 'backward') => ({
-      x: direction === 'forward' ? -300 : 300,
+    exit: (direction: "forward" | "backward") => ({
+      x: direction === "forward" ? -300 : 300,
       opacity: 0,
-      scale: 0.98
-    })
+      scale: 0.98,
+    }),
   };
 
   // Progress restored notification
@@ -189,7 +201,9 @@ export const MultiStepLayout: React.FC<MultiStepLayoutProps> = ({
         >
           <div className="flex items-center gap-2">
             <CheckCircle className="w-5 h-5" />
-            <span className="text-sm font-medium">Progress restored from previous session</span>
+            <span className="text-sm font-medium">
+              Progress restored from previous session
+            </span>
           </div>
         </motion.div>
       )}
@@ -218,10 +232,10 @@ export const MultiStepLayout: React.FC<MultiStepLayoutProps> = ({
                 Don't lose your progress!
               </h3>
               <p className="text-gray-600 mb-6">
-                Your form is {Math.round(completionPercentage)}% complete. 
-                Your progress has been automatically saved.
+                Your form is {Math.round(completionPercentage)}% complete. Your
+                progress has been automatically saved.
               </p>
-              
+
               <div className="flex gap-3">
                 <motion.button
                   type="button"
@@ -260,7 +274,7 @@ export const MultiStepLayout: React.FC<MultiStepLayoutProps> = ({
     <div className="multi-step-layout min-h-screen bg-gray-50">
       {/* Progress Restored Notification */}
       <ProgressRestoredNotification />
-      
+
       {/* Exit Intent Modal */}
       <ExitIntentModal />
 
@@ -275,7 +289,7 @@ export const MultiStepLayout: React.FC<MultiStepLayoutProps> = ({
                 <p className="text-gray-600 mt-1">{form.description}</p>
               )}
             </div>
-            
+
             <div className="flex items-center gap-4">
               {/* Save Progress Indicator */}
               <motion.div
@@ -314,11 +328,11 @@ export const MultiStepLayout: React.FC<MultiStepLayoutProps> = ({
               isCompleted: isStepCompleted(index),
               isActive: index === currentStepIndex,
               isAccessible: canAccessStep(index),
-              hasError: hasStepError(index)
+              hasError: hasStepError(index),
             }))}
             currentStep={currentStepIndex}
             onStepClick={handleStepClick}
-            variant={progressConfig?.type === 'dots' ? 'dots' : 'horizontal'}
+            variant={progressConfig?.type === "dots" ? "dots" : "horizontal"}
             showLabels={progressConfig?.showStepLabels !== false}
             className="mb-4"
           />
@@ -369,7 +383,9 @@ export const MultiStepLayout: React.FC<MultiStepLayoutProps> = ({
                   </h4>
                   <ul className="text-sm text-red-700 space-y-1">
                     {getStepErrors(currentStepIndex).map((error, index) => (
-                      <li key={index} className="list-disc list-inside">{error}</li>
+                      <li key={index} className="list-disc list-inside">
+                        {error}
+                      </li>
                     ))}
                   </ul>
                 </div>
@@ -390,7 +406,7 @@ export const MultiStepLayout: React.FC<MultiStepLayoutProps> = ({
                 transition={{
                   x: { type: "spring", stiffness: 300, damping: 30 },
                   opacity: { duration: 0.2 },
-                  scale: { duration: 0.2 }
+                  scale: { duration: 0.2 },
                 }}
                 className="bg-white rounded-xl shadow-sm border border-gray-200 p-8"
               >
@@ -400,5 +416,148 @@ export const MultiStepLayout: React.FC<MultiStepLayoutProps> = ({
                       key={field.id}
                       initial={{ opacity: 0, y: 20 }}
                       animate={{ opacity: 1, y: 0 }}
-                      transition={{ 
-                        durati
+                      transition={{
+                        duration: 0.4,
+                        delay: fieldIndex * 0.1,
+                      }}
+                    >
+                      <FormQuestion
+                        field={field}
+                        questionNumber={
+                          form.fields.findIndex((f) => f.id === field.id) + 1
+                        }
+                        showQuestionNumber={true}
+                        showValidation={true}
+                      />
+                    </motion.div>
+                  ))}
+                </div>
+              </motion.div>
+            </AnimatePresence>
+          </div>
+        </div>
+
+        {/* Navigation Controls */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.3 }}
+          className="flex items-center justify-between mt-8 pt-6 border-t border-gray-200"
+        >
+          {/* Back Button */}
+          <div className="flex-1">
+            {!isFirstStep && (
+              <AnimatedButton
+                variant="secondary"
+                onClick={handlePreviousStep}
+                disabled={isLoading || isValidating}
+                className="inline-flex items-center gap-2 px-6 py-3 text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 disabled:opacity-50"
+              >
+                <ChevronLeft className="w-4 h-4" />
+                Previous
+              </AnimatedButton>
+            )}
+          </div>
+
+          {/* Step Counter */}
+          <div className="flex items-center gap-2 text-sm text-gray-500">
+            <span>{currentStepIndex + 1}</span>
+            <span>/</span>
+            <span>{totalSteps}</span>
+          </div>
+
+          {/* Next/Submit Button */}
+          <div className="flex-1 flex justify-end">
+            <AnimatedButton
+              variant="primary"
+              onClick={handleNextStep}
+              disabled={isLoading || isValidating}
+              className={`inline-flex items-center gap-2 px-6 py-3 text-white rounded-lg font-medium disabled:opacity-50 ${
+                isLastStep
+                  ? "bg-green-600 hover:bg-green-700"
+                  : "bg-blue-600 hover:bg-blue-700"
+              }`}
+            >
+              {isValidating ? (
+                <>
+                  <Loader className="w-4 h-4 animate-spin" />
+                  Validating...
+                </>
+              ) : isLastStep ? (
+                <>
+                  <Sparkles className="w-4 h-4" />
+                  Complete Form
+                </>
+              ) : (
+                <>
+                  Continue
+                  <ChevronRight className="w-4 h-4" />
+                </>
+              )}
+            </AnimatedButton>
+          </div>
+        </motion.div>
+
+        {/* Mobile Progress Footer */}
+        <div className="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 p-4 md:hidden">
+          <div className="max-w-4xl mx-auto">
+            {/* Mobile Progress Bar */}
+            <div className="mb-3">
+              <div className="flex justify-between text-xs text-gray-500 mb-1">
+                <span>
+                  Step {currentStepIndex + 1} of {totalSteps}
+                </span>
+                <span>{Math.round(completionPercentage)}% complete</span>
+              </div>
+              <AnimatedProgressIndicator
+                progress={completionPercentage}
+                type="bar"
+                showPercentage={false}
+                className="h-1.5"
+              />
+            </div>
+
+            {/* Mobile Navigation */}
+            <div className="flex items-center justify-between">
+              <AnimatedButton
+                variant="secondary"
+                onClick={handlePreviousStep}
+                disabled={isFirstStep || isLoading || isValidating}
+                className="flex items-center gap-2 px-4 py-2 text-sm"
+              >
+                <ChevronLeft className="w-4 h-4" />
+                Back
+              </AnimatedButton>
+
+              <AnimatedButton
+                variant="primary"
+                onClick={handleNextStep}
+                disabled={isLoading || isValidating}
+                className={`flex items-center gap-2 px-4 py-2 text-sm ${
+                  isLastStep ? "bg-green-600" : "bg-blue-600"
+                }`}
+              >
+                {isValidating ? (
+                  <>
+                    <Loader className="w-4 h-4 animate-spin" />
+                    Validating
+                  </>
+                ) : isLastStep ? (
+                  <>
+                    Complete
+                    <Sparkles className="w-4 h-4" />
+                  </>
+                ) : (
+                  <>
+                    Continue
+                    <ChevronRight className="w-4 h-4" />
+                  </>
+                )}
+              </AnimatedButton>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+};
