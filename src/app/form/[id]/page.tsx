@@ -3,7 +3,12 @@
 import { useState, useEffect } from "react";
 import { useParams } from "next/navigation";
 import { Form, FormField } from "@/types/form";
-import { Star, Calendar, ChevronDown } from "lucide-react";
+import { Star, Calendar, ChevronDown, AlertCircle } from "lucide-react";
+import {
+  validateFormData,
+  validateFormField,
+  ValidationError,
+} from "@/lib/utils/validation";
 
 export default function PublicFormPage() {
   const params = useParams();
@@ -14,7 +19,10 @@ export default function PublicFormPage() {
   const [formData, setFormData] = useState<Record<string, any>>({});
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isSubmitted, setIsSubmitted] = useState(false);
-  const [errors, setErrors] = useState<Record<string, string>>({});
+  const [validationErrors, setValidationErrors] = useState<ValidationError[]>(
+    []
+  );
+  const [fieldTouched, setFieldTouched] = useState<Record<string, boolean>>({});
 
   useEffect(() => {
     loadForm();
@@ -36,23 +44,69 @@ export default function PublicFormPage() {
     }
   };
 
-  const validateForm = () => {
-    const newErrors: Record<string, string> = {};
+  const getFieldError = (fieldId: string) => {
+    return validationErrors.find((error) => error.fieldId === fieldId);
+  };
 
-    form?.fields.forEach((field) => {
-      if (field.required && !formData[field.id]) {
-        newErrors[field.id] = "This field is required";
+  const handleFieldChange = (fieldId: string, value: any) => {
+    setFormData((prev) => ({ ...prev, [fieldId]: value }));
+
+    // Real-time validation if field has been touched
+    if (fieldTouched[fieldId] && form) {
+      const field = form.fields.find((f) => f.id === fieldId);
+      if (field) {
+        const error = validateFormField(field, value);
+        setValidationErrors((prev) =>
+          prev.filter((e) => e.fieldId !== fieldId).concat(error ? [error] : [])
+        );
       }
-    });
+    }
+  };
 
-    setErrors(newErrors);
-    return Object.keys(newErrors).length === 0;
+  const handleFieldBlur = (fieldId: string) => {
+    setFieldTouched((prev) => ({ ...prev, [fieldId]: true }));
+
+    if (form) {
+      const field = form.fields.find((f) => f.id === fieldId);
+      if (field) {
+        const error = validateFormField(field, formData[fieldId]);
+        setValidationErrors((prev) =>
+          prev.filter((e) => e.fieldId !== fieldId).concat(error ? [error] : [])
+        );
+      }
+    }
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    if (!validateForm()) return;
+    if (!form) return;
+
+    // Mark all fields as touched
+    const allFieldsTouched = form.fields.reduce((acc, field) => {
+      acc[field.id] = true;
+      return acc;
+    }, {} as Record<string, boolean>);
+    setFieldTouched(allFieldsTouched);
+
+    // Validate all fields
+    const errors = validateFormData(form.fields, formData);
+    setValidationErrors(errors);
+
+    if (errors.length > 0) {
+      // Focus on first error field
+      const firstErrorField = document.querySelector(
+        `[data-field-id="${errors[0].fieldId}"]`
+      ) as HTMLElement;
+      firstErrorField?.focus();
+
+      // Scroll to first error
+      firstErrorField?.scrollIntoView({
+        behavior: "smooth",
+        block: "center",
+      });
+      return;
+    }
 
     setIsSubmitting(true);
 
@@ -77,22 +131,6 @@ export default function PublicFormPage() {
       alert("Failed to submit form. Please try again.");
     } finally {
       setIsSubmitting(false);
-    }
-  };
-
-  const updateFormData = (fieldId: string, value: any) => {
-    setFormData((prev) => ({
-      ...prev,
-      [fieldId]: value,
-    }));
-
-    // Clear error when user starts typing
-    if (errors[fieldId]) {
-      setErrors((prev) => {
-        const newErrors = { ...prev };
-        delete newErrors[fieldId];
-        return newErrors;
-      });
     }
   };
 
@@ -163,6 +201,27 @@ export default function PublicFormPage() {
             )}
           </div>
 
+          {/* Validation Summary (if errors exist) */}
+          {validationErrors.length > 0 && (
+            <div className="px-8 py-4 bg-red-50 border-b border-red-200">
+              <div className="flex items-start gap-3">
+                <AlertCircle className="w-5 h-5 text-red-600 flex-shrink-0 mt-0.5" />
+                <div>
+                  <h3 className="text-sm font-medium text-red-800">
+                    Please fix the following errors:
+                  </h3>
+                  <ul className="mt-2 text-sm text-red-700">
+                    {validationErrors.map((error, index) => (
+                      <li key={index} className="list-disc list-inside">
+                        {error.message}
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              </div>
+            </div>
+          )}
+
           {/* Form Content */}
           <form onSubmit={handleSubmit} className="px-8 py-6">
             <div className="space-y-6">
@@ -177,8 +236,13 @@ export default function PublicFormPage() {
 
                   {renderField(field)}
 
-                  {errors[field.id] && (
-                    <p className="text-sm text-red-600">{errors[field.id]}</p>
+                  {getFieldError(field.id) && (
+                    <div className="flex items-start gap-2 mt-2">
+                      <AlertCircle className="w-4 h-4 text-red-500 flex-shrink-0 mt-0.5" />
+                      <p className="text-sm text-red-600">
+                        {getFieldError(field.id)?.message}
+                      </p>
+                    </div>
                   )}
                 </div>
               ))}
@@ -188,8 +252,13 @@ export default function PublicFormPage() {
               <button
                 type="submit"
                 disabled={isSubmitting}
-                className="w-full bg-blue-600 text-white py-3 px-6 rounded-lg hover:bg-blue-700 disabled:bg-blue-400 disabled:cursor-not-allowed transition-colors font-medium"
-                style={{ backgroundColor: form.theme.primaryColor }}
+                className="w-full py-3 px-6 rounded-lg font-medium transition-colors disabled:cursor-not-allowed"
+                style={{
+                  backgroundColor: isSubmitting
+                    ? "#94a3b8"
+                    : form.theme.primaryColor,
+                  color: "white",
+                }}
               >
                 {isSubmitting ? "Submitting..." : "Submit"}
               </button>
@@ -201,22 +270,36 @@ export default function PublicFormPage() {
   );
 
   function renderField(field: FormField) {
+    const fieldError = getFieldError(field.id);
+    const baseInputClasses = `w-full px-4 py-3 border rounded-lg focus:ring-2 focus:border-transparent transition-colors ${
+      fieldError
+        ? "border-red-500 focus:ring-red-200"
+        : "border-gray-300 focus:ring-blue-500"
+    }`;
+
     switch (field.type) {
       case "text":
         return (
-          <input
-            type="text"
-            value={formData[field.id] || ""}
-            onChange={(e) => updateFormData(field.id, e.target.value)}
-            placeholder={field.placeholder || "Your answer"}
-            className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-            style={{ focusRingColor: form?.theme.primaryColor }}
-          />
+          <div className="relative">
+            <input
+              type="text"
+              data-field-id={field.id}
+              value={formData[field.id] || ""}
+              onChange={(e) => handleFieldChange(field.id, e.target.value)}
+              onBlur={() => handleFieldBlur(field.id)}
+              placeholder={field.placeholder || "Your answer"}
+              className={baseInputClasses}
+              maxLength={500}
+            />
+            <div className="text-xs text-gray-500 mt-1">
+              {formData[field.id]?.length || 0}/500 characters
+            </div>
+          </div>
         );
 
       case "multipleChoice":
         return (
-          <div className="space-y-3">
+          <div className="space-y-3" data-field-id={field.id}>
             {field.options?.map((option, index) => (
               <label
                 key={index}
@@ -227,7 +310,8 @@ export default function PublicFormPage() {
                   name={field.id}
                   value={option}
                   checked={formData[field.id] === option}
-                  onChange={(e) => updateFormData(field.id, e.target.value)}
+                  onChange={(e) => handleFieldChange(field.id, e.target.value)}
+                  onBlur={() => handleFieldBlur(field.id)}
                   className="text-blue-600"
                   style={{ accentColor: form?.theme.primaryColor }}
                 />
@@ -241,9 +325,11 @@ export default function PublicFormPage() {
         return (
           <div className="relative">
             <select
+              data-field-id={field.id}
               value={formData[field.id] || ""}
-              onChange={(e) => updateFormData(field.id, e.target.value)}
-              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent appearance-none bg-white"
+              onChange={(e) => handleFieldChange(field.id, e.target.value)}
+              onBlur={() => handleFieldBlur(field.id)}
+              className={`${baseInputClasses} appearance-none bg-white`}
             >
               <option value="">Select an option...</option>
               {field.options?.map((option, index) => (
@@ -258,28 +344,31 @@ export default function PublicFormPage() {
 
       case "rating":
         return (
-          <div className="flex gap-2">
-            {Array.from({ length: field.maxRating || 5 }).map((_, index) => {
-              const rating = index + 1;
-              const isSelected = formData[field.id] >= rating;
+          <div data-field-id={field.id}>
+            <div className="flex gap-2">
+              {Array.from({ length: field.maxRating || 5 }).map((_, index) => {
+                const rating = index + 1;
+                const isSelected = formData[field.id] >= rating;
 
-              return (
-                <button
-                  key={index}
-                  type="button"
-                  onClick={() => updateFormData(field.id, rating)}
-                  className="p-2 transition-colors"
-                >
-                  <Star
-                    className={`w-6 h-6 ${
-                      isSelected
-                        ? "text-yellow-400 fill-current"
-                        : "text-gray-300 hover:text-yellow-300"
-                    }`}
-                  />
-                </button>
-              );
-            })}
+                return (
+                  <button
+                    key={index}
+                    type="button"
+                    onClick={() => handleFieldChange(field.id, rating)}
+                    onBlur={() => handleFieldBlur(field.id)}
+                    className="p-2 transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 rounded"
+                  >
+                    <Star
+                      className={`w-6 h-6 ${
+                        isSelected
+                          ? "text-yellow-400 fill-current"
+                          : "text-gray-300 hover:text-yellow-300"
+                      }`}
+                    />
+                  </button>
+                );
+              })}
+            </div>
             {formData[field.id] && (
               <span className="ml-2 text-sm text-gray-600">
                 {formData[field.id]} out of {field.maxRating || 5}
@@ -293,9 +382,11 @@ export default function PublicFormPage() {
           <div className="relative">
             <input
               type="date"
+              data-field-id={field.id}
               value={formData[field.id] || ""}
-              onChange={(e) => updateFormData(field.id, e.target.value)}
-              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              onChange={(e) => handleFieldChange(field.id, e.target.value)}
+              onBlur={() => handleFieldBlur(field.id)}
+              className={baseInputClasses}
             />
             <Calendar className="absolute right-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400 pointer-events-none" />
           </div>
