@@ -1,3 +1,4 @@
+/* eslint-disable react/no-unescaped-entities */
 "use client";
 
 import React, { useState, useEffect } from "react";
@@ -42,11 +43,10 @@ export const MultiStepLayout: React.FC<MultiStepLayoutProps> = ({
   const [showExitIntent, setShowExitIntent] = useState(false);
   const [showProgressRestored, setShowProgressRestored] = useState(false);
 
-  // Get step grouping
+  // Get step grouping (removed formData parameter as it's not needed)
   const { steps, totalSteps } = useStepGrouping({
     fields: form.fields,
     fieldGroups: form.fieldGroups,
-    formData: formMethods.getValues(),
   });
 
   // Multi-step progress management
@@ -270,6 +270,34 @@ export const MultiStepLayout: React.FC<MultiStepLayoutProps> = ({
     return <div>No steps available</div>;
   }
 
+  // Helper function to determine progress indicator type
+  const getProgressIndicatorType = (): "bar" | "circle" | "steps" => {
+    if (!progressConfig?.type) return "bar";
+
+    // Map the progressConfig types to AnimatedProgressIndicator types
+    switch (progressConfig.type) {
+      case "circle":
+        return "circle";
+      case "steps":
+        return "steps";
+      case "bar":
+      case "percentage":
+      default:
+        return "bar";
+    }
+  };
+
+  // Helper function to determine step indicator variant
+  const getStepIndicatorVariant = (): "horizontal" | "vertical" | "dots" => {
+    if (!progressConfig?.type) return "horizontal";
+
+    // Map progressConfig types to StepIndicator variants
+    if (form.layout.options.multiStep?.progressBarStyle === "dots") {
+      return "dots";
+    }
+    return "horizontal";
+  };
+
   return (
     <div className="multi-step-layout min-h-screen bg-gray-50">
       {/* Progress Restored Notification */}
@@ -332,7 +360,7 @@ export const MultiStepLayout: React.FC<MultiStepLayoutProps> = ({
             }))}
             currentStep={currentStepIndex}
             onStepClick={handleStepClick}
-            variant={progressConfig?.type === "dots" ? "dots" : "horizontal"}
+            variant={getStepIndicatorVariant()}
             showLabels={progressConfig?.showStepLabels !== false}
             className="mb-4"
           />
@@ -340,7 +368,7 @@ export const MultiStepLayout: React.FC<MultiStepLayoutProps> = ({
           {/* Overall Progress Bar */}
           <AnimatedProgressIndicator
             progress={completionPercentage}
-            type="bar"
+            type={getProgressIndicatorType()}
             showPercentage={false}
             className="h-2"
           />

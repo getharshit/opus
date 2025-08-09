@@ -42,7 +42,7 @@ export const useStepGrouping = ({ fields, fieldGroups }: UseStepGroupingProps) =
         (currentStep.fields.length >= 5); // Max fields per step
 
       if (shouldStartNewStep) {
-        // Save previous step if it exists
+        // Save previous step if it exists and has fields
         if (currentStep && currentStep.fields.length > 0) {
           autoSteps.push(currentStep);
         }
@@ -58,14 +58,25 @@ export const useStepGrouping = ({ fields, fieldGroups }: UseStepGroupingProps) =
       }
 
       // Add field to current step (unless it's a page break)
+      // We know currentStep is not null here because we just created it if it was null
       if (field.type !== 'pageBreak' && currentStep) {
         currentStep.fields.push(field);
       }
     });
 
-    // Add the last step
+    // Add the last step if it exists and has fields
     if (currentStep && currentStep.fields.length > 0) {
       autoSteps.push(currentStep);
+    }
+
+    // Ensure we always have at least one step
+    if (autoSteps.length === 0 && fields.length > 0) {
+      autoSteps.push({
+        id: 'step-1',
+        title: 'Form',
+        description: 'Complete the form',
+        fields: fields.filter(field => field.type !== 'pageBreak')
+      });
     }
 
     return autoSteps;
@@ -82,7 +93,7 @@ const isLogicalBreakPoint = (currentField: ExtendedFormField, previousField?: Ex
   if (!previousField) return false;
 
   // Break on field type changes that suggest new sections
-  const breakingTransitions: Array<[string, string]> = [
+  const breakingTransitions: Array<[ExtendedFormField['type'], ExtendedFormField['type']]> = [
     // From basic info to detailed info
     ['shortText', 'longText'],
     ['email', 'longText'],
@@ -91,7 +102,10 @@ const isLogicalBreakPoint = (currentField: ExtendedFormField, previousField?: Ex
     ['opinionScale', 'legal'],
     // From input to selection
     ['longText', 'multipleChoice'],
-    ['shortText', 'dropdown']
+    ['shortText', 'dropdown'],
+    // From regular fields to special pages
+    ['shortText', 'startingPage'],
+    ['longText', 'postSubmission'],
   ];
 
   return breakingTransitions.some(([prev, curr]) => 
@@ -101,7 +115,7 @@ const isLogicalBreakPoint = (currentField: ExtendedFormField, previousField?: Ex
 
 const generateStepTitle = (field: ExtendedFormField, stepNumber: number): string => {
   // Complete mapping for all field types
-  const fieldTypeNames: Record<string, string> = {
+  const fieldTypeNames: Record<ExtendedFormField['type'], string> = {
     shortText: 'Basic Information',
     longText: 'Detailed Information',
     email: 'Contact Information',
@@ -116,7 +130,8 @@ const generateStepTitle = (field: ExtendedFormField, stepNumber: number): string
     statement: 'Information',
     fileUpload: 'File Upload',
     startingPage: 'Welcome',
-    postSubmission: 'Completion'
+    postSubmission: 'Completion',
+    pageBreak: `Step ${stepNumber}`
   };
 
   return fieldTypeNames[field.type] || `Step ${stepNumber}`;
@@ -124,7 +139,7 @@ const generateStepTitle = (field: ExtendedFormField, stepNumber: number): string
 
 const generateStepDescription = (field: ExtendedFormField): string => {
   // Complete mapping for all field types
-  const descriptions: Record<string, string> = {
+  const descriptions: Record<ExtendedFormField['type'], string> = {
     shortText: 'Please provide some basic information',
     longText: 'Share your detailed thoughts and feedback',
     email: 'We need your contact information',
@@ -139,7 +154,8 @@ const generateStepDescription = (field: ExtendedFormField): string => {
     statement: 'Important information',
     fileUpload: 'Upload your documents',
     startingPage: 'Welcome to the form',
-    postSubmission: 'Thank you for completing the form'
+    postSubmission: 'Thank you for completing the form',
+    pageBreak: 'Continue to next section'
   };
 
   return descriptions[field.type] || 'Complete this section';

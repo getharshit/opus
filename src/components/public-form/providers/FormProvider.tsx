@@ -1,6 +1,12 @@
 "use client";
 
-import React, { createContext, useContext, useEffect, useMemo } from "react";
+import React, {
+  createContext,
+  useContext,
+  useEffect,
+  useMemo,
+  useRef,
+} from "react";
 import {
   useForm,
   FormProvider as RHFFormProvider,
@@ -130,12 +136,18 @@ export const FormProvider: React.FC<FormProviderProps> = ({
     visitedSteps: new Set([0]),
   });
 
+  // Track previous form data for change detection
+  const previousFormDataRef = useRef<Record<string, any>>({});
+
   // Watch for form data changes
   const watchedData = watch();
 
   useEffect(() => {
-    setFormState((prev) => ({
-      ...prev,
+    // Get the previous form data from the ref
+    const previousFormData = previousFormDataRef.current;
+
+    setFormState((prevState) => ({
+      ...prevState,
       formData: watchedData,
       isValid: rhfFormState.isValid,
       errors: validateAll(watchedData),
@@ -144,12 +156,16 @@ export const FormProvider: React.FC<FormProviderProps> = ({
     // Notify parent of field changes
     if (onFieldChange) {
       Object.keys(watchedData).forEach((fieldId) => {
-        if (prev.formData[fieldId] !== watchedData[fieldId]) {
+        // Compare with previous data to detect changes
+        if (previousFormData[fieldId] !== watchedData[fieldId]) {
           onFieldChange(fieldId, watchedData[fieldId]);
         }
       });
     }
-  }, [watchedData, rhfFormState.isValid, onFieldChange]);
+
+    // Update the ref with current data for next comparison
+    previousFormDataRef.current = watchedData;
+  }, [watchedData, rhfFormState.isValid, onFieldChange, validateAll]);
 
   // Step navigation functions
   const nextStep = async () => {
