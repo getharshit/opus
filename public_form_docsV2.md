@@ -47,26 +47,53 @@ The Public Form System has been completely rewritten to provide enterprise-grade
 
 ```
 src/components/public-form/
-├── types/                      # TypeScript definitions
-│   ├── fields.ts              # Form field interfaces (16 types)
-│   ├── customization.ts       # Theme and styling types
-│   ├── layout.ts              # Layout configuration types
-│   ├── theme.ts               # Theme system types
-│   └── index.ts               # Type exports
-├── animation/                  # Animation system
-│   ├── types.ts               # Animation configuration types
-│   ├── presets.ts             # Pre-built animation variants
-│   ├── AnimationProvider.tsx  # Animation context provider
-│   └── components/            # Animated components
-│       ├── AnimatedFieldContainer.tsx
-│       ├── AnimatedButton.tsx
-│       ├── AnimatedErrorMessage.tsx
-│       ├── AnimatedProgressIndicator.tsx
-│       └── AnimatedStepTransition.tsx
-├── providers/                  # React context providers
-│   └── FormProvider.tsx       # Form state management
-├── components/                 # Form components
-│   ├── fields/                # Individual field components (16 types)
+├── animation/
+│   ├── types.ts                     # Animation configuration types
+│   ├── presets.ts                   # Animation variants & intensity configs
+│   ├── AnimationProvider.tsx        # Animation context provider & state management
+│   └── components/
+│       ├── AnimationIntensityControl.tsx    # User control interface
+│       ├── AnimatedButton.tsx              # Interactive button animations
+│       ├── AnimatedFieldContainer.tsx      # Form field entrance/exit
+│       ├── AnimatedErrorMessage.tsx        # Error state with shake effects
+│       ├── AnimatedProgressIndicator.tsx   # Progress animations (bar/circle/steps)
+│       └── AnimatedStepTransition.tsx      # Multi-step navigation
+│   └── index.ts                     # Public API exports
+├── themes/
+│   ├── index.ts                    # Main exports
+│   ├── ThemeProvider.tsx           # Core theme provider component
+│   ├── defaultTheme.ts             # Default theme configuration
+│   ├── themeUtils.ts               # Theme utility functions
+│   ├── cssPropertyManager.ts       # CSS custom property management
+│   ├── themeStateReducer.ts        # Theme state management
+│   └── types.ts                    # Theme-specific TypeScript types
+├── typography/
+│   ├── fontLoader.ts               # Google Fonts & system font loading
+│   ├── fontPresets.ts              # Curated font collections
+│   ├── fontFallbackManager.ts      # Fallback font stacks
+│   ├── scales.ts                   # Mathematical scale generation
+│   ├── responsiveTypography.ts     # Screen size adaptations
+│   ├── typographyValidator.ts      # Accessibility validation
+│   ├── cssGenerator.ts             # CSS custom properties
+│   ├── cssManager.ts               # Real-time CSS injection
+│   ├── defaultFormTypographyMapping.ts # Element mappings
+│   ├── TypographyProvider.tsx      # React context provider
+│   ├── typographyThemeUtils.ts     # Theme creation utilities
+│   ├── types.ts                    # Typography system types
+│   └── configuration/
+│       ├── TypographyConfig.ts     # Complete configuration interface
+│       ├── FormTypographyMapping.ts# Element-specific settings
+│       └── accessibility.ts        # Accessibility & Performance settings
+├── types/
+│   ├── fields.ts                   # Form field interfaces (16 types)
+│   ├── customization.ts            # Theme and styling types
+│   ├── layout.ts                   # Layout configuration types
+│   ├── theme.ts                    # Theme system types
+│   └── index.ts                    # Type exports
+├── providers/
+│   └── FormProvider.tsx            # Form state management
+├── components/
+│   ├── fields/                     # Individual field components (16 types)
 │   │   ├── ShortTextField.tsx
 │   │   ├── LongTextField.tsx
 │   │   ├── EmailField.tsx
@@ -82,25 +109,25 @@ src/components/public-form/
 │   │   ├── StartingPageField.tsx
 │   │   ├── PostSubmissionField.tsx
 │   │   └── QuestionContainer.tsx
-│   ├── base-fields/           # Base field implementations
-│   ├── FormQuestion.tsx       # Question wrapper component
-│   ├── FieldRenderer.tsx      # Field type dispatcher
-│   ├── FormNavigation.tsx     # Navigation controls
-│   ├── StepIndicator.tsx      # Multi-step progress
+│   ├── base-fields/                # Base field implementations
+│   ├── FormQuestion.tsx            # Question wrapper component
+│   ├── FieldRenderer.tsx           # Field type dispatcher
+│   ├── FormNavigation.tsx          # Navigation controls
+│   ├── StepIndicator.tsx           # Multi-step progress
 │   ├── CompletionCelebration.tsx
-│   └── PublicFormRenderer.tsx # Main form renderer
-├── layouts/                    # Layout components
-│   ├── SingleColumnLayout.tsx # Conversational single-column layout
-│   └── MultiStepLayout.tsx    # Multi-step wizard layout
-├── hooks/                      # Custom React hooks
-│   ├── useFormValidation.ts   # Validation logic
+│   └── PublicFormRenderer.tsx      # Main form renderer
+├── layouts/
+│   ├── SingleColumnLayout.tsx      # Conversational single-column layout
+│   └── MultiStepLayout.tsx         # Multi-step wizard layout
+├── hooks/
+│   ├── useFormValidation.ts        # Validation logic
 │   ├── useKeyboardNavigation.ts
 │   ├── useMultiStepProgress.ts
 │   ├── useProgressSaving.ts
 │   └── useStepGrouping.ts
-├── utils/                      # Utility functions
-│   └── formUtils.ts           # Form conversion utilities
-└── index.ts                   # Main exports
+├── utils/
+│   └── formUtils.ts                # Form conversion utilities
+└── index.ts                        # Main exports
 ```
 
 ---
