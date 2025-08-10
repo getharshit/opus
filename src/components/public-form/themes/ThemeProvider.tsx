@@ -1,4 +1,5 @@
-// src/components/public-form/themes/ThemeProvider.tsx - Updated with Typography Integration
+/* eslint-disable @typescript-eslint/no-empty-object-type */
+// src/components/public-form/themes/ThemeProvider.tsx - Updated with Button & Color Customization
 
 "use client";
 
@@ -18,6 +19,8 @@ import {
   ThemeValidationResult,
   CSSCustomProperties,
 } from "./types";
+import { LogoConfig } from "./logos/types";
+import { BackgroundConfig } from "./backgrounds/types";
 import {
   themeReducer,
   initialThemeState,
@@ -28,8 +31,12 @@ import {
 import { cssPropertyUtils, DebouncedCSSManager } from "./cssProperties";
 import { defaultTheme } from "./defaultTheme";
 import { TypographyConfig } from "./typography/types";
+import { ButtonCustomization } from "./buttons/types";
+import { ColorPalette } from "./colors/types";
 import { fontLoader } from "./typography/fontLoader";
 import { typographyCSSManager } from "./typography/cssGenerator";
+import { ButtonColorCSSGenerator } from "./css/buttonColorGenerator";
+import { BasicFileUploadManager } from "./upload/basicFileUpload";
 
 // Theme context
 const ThemeContext = createContext<ThemeContextValue | null>(null);
@@ -95,13 +102,17 @@ interface ThemeProviderProps {
   persistenceKey?: string;
   enablePersistence?: boolean;
   enablePreview?: boolean;
-  enableTypographySystem?: boolean; // NEW
+  enableTypographySystem?: boolean;
+  enableButtonCustomization?: boolean; // NEW
+  enableColorManagement?: boolean; // NEW
   onThemeChange?: (theme: Theme) => void;
-  onTypographyChange?: (typography: TypographyConfig) => void; // NEW
+  onTypographyChange?: (typography: TypographyConfig) => void;
+  onButtonCustomizationChange?: (buttons: ButtonCustomization) => void; // NEW
+  onColorPaletteChange?: (colors: ColorPalette) => void; // NEW
   onError?: (error: string) => void;
 }
 
-// Enhanced theme provider component with typography integration
+// Enhanced theme provider component with button and color customization
 export const ThemeProvider: React.FC<ThemeProviderProps> = ({
   children,
   initialTheme,
@@ -109,15 +120,19 @@ export const ThemeProvider: React.FC<ThemeProviderProps> = ({
   enablePersistence = true,
   enablePreview = true,
   enableTypographySystem = true,
+  enableButtonCustomization = true,
+  enableColorManagement = true,
   onThemeChange,
   onTypographyChange,
+  onButtonCustomizationChange,
+  onColorPaletteChange,
   onError,
 }) => {
   // State management
   const [state, dispatch] = useReducer(themeReducer, initialThemeState);
 
   // CSS manager with debouncing
-  const cssManager = useRef<DebouncedCSSManager>();
+  const cssManager = useRef<DebouncedCSSManager | null>(null);
   const isInitialized = useRef(false);
 
   // Initialize CSS manager
@@ -165,10 +180,28 @@ export const ThemeProvider: React.FC<ThemeProviderProps> = ({
           );
         }
 
-        // Notify parent of theme change
+        // Apply button customization CSS if enabled
+        if (
+          enableButtonCustomization &&
+          activeTheme.buttonCustomization &&
+          activeTheme.colorPalette
+        ) {
+          ButtonColorCSSGenerator.injectCSS(
+            activeTheme.buttonCustomization,
+            activeTheme.colorPalette
+          );
+        }
+
+        // Notify parent of changes
         onThemeChange?.(activeTheme);
         if (activeTheme.advancedTypography) {
           onTypographyChange?.(activeTheme.advancedTypography);
+        }
+        if (activeTheme.buttonCustomization) {
+          onButtonCustomizationChange?.(activeTheme.buttonCustomization);
+        }
+        if (activeTheme.colorPalette) {
+          onColorPaletteChange?.(activeTheme.colorPalette);
         }
       } catch (error) {
         console.error("Failed to apply theme CSS:", error);
@@ -180,8 +213,12 @@ export const ThemeProvider: React.FC<ThemeProviderProps> = ({
     state.previewMode,
     state.previewTheme,
     enableTypographySystem,
+    enableButtonCustomization,
+    enableColorManagement,
     onThemeChange,
     onTypographyChange,
+    onButtonCustomizationChange,
+    onColorPaletteChange,
     onError,
   ]);
 
@@ -293,7 +330,7 @@ export const ThemeProvider: React.FC<ThemeProviderProps> = ({
     [state.currentTheme, onError]
   );
 
-  // NEW: Typography management functions
+  // Typography management functions
   const updateTypography = useCallback(
     (updates: Partial<TypographyConfig>) => {
       if (!enableTypographySystem) {
@@ -329,6 +366,92 @@ export const ThemeProvider: React.FC<ThemeProviderProps> = ({
       updateTypography(defaultTypography);
     }
   }, [enableTypographySystem, updateTypography]);
+
+  // NEW: Button customization management functions
+  const updateButtonCustomization = useCallback(
+    (updates: Partial<ButtonCustomization>) => {
+      if (!enableButtonCustomization) {
+        console.warn("Button customization is disabled");
+        return;
+      }
+
+      try {
+        dispatch(themeActions.updateButtonCustomization(updates));
+      } catch (error) {
+        const errorMessage = `Failed to update button customization: ${error}`;
+        dispatch(themeActions.setError(errorMessage));
+        onError?.(errorMessage);
+      }
+    },
+    [enableButtonCustomization, onError]
+  );
+
+  const resetButtonCustomization = useCallback(() => {
+    if (!enableButtonCustomization) return;
+
+    const defaultButtonCustomization: ButtonCustomization = {
+      variant: "filled",
+      size: "medium",
+      borderRadius: 8,
+      borderWidth: 1,
+      paddingMultiplier: 1,
+      fontWeight: 500,
+      hoverScale: 1.02,
+      transitionDuration: 200,
+      minHeight: 44,
+      focusRingWidth: 2,
+      hoverOpacity: 0.9,
+      activeOpacity: 0.95,
+      disabledOpacity: 0.5,
+    };
+
+    updateButtonCustomization(defaultButtonCustomization);
+  }, [enableButtonCustomization, updateButtonCustomization]);
+
+  // NEW: Color palette management functions
+  const updateColorPalette = useCallback(
+    (updates: Partial<ColorPalette>) => {
+      if (!enableColorManagement) {
+        console.warn("Color management is disabled");
+        return;
+      }
+
+      try {
+        dispatch(themeActions.updateColorPalette(updates));
+      } catch (error) {
+        const errorMessage = `Failed to update color palette: ${error}`;
+        dispatch(themeActions.setError(errorMessage));
+        onError?.(errorMessage);
+      }
+    },
+    [enableColorManagement, onError]
+  );
+
+  const resetColorPalette = useCallback(() => {
+    if (!enableColorManagement) return;
+
+    const defaultColorPalette: ColorPalette = {
+      primary: "#3B82F6",
+      secondary: "#6B7280",
+      tertiary: "#E5E7EB",
+      textPrimary: "#111827",
+      textSecondary: "#6B7280",
+      textTertiary: "#9CA3AF",
+      textInverse: "#FFFFFF",
+      background: "#FFFFFF",
+      surface: "#F9FAFB",
+      surfaceElevated: "#FFFFFF",
+      success: "#10B981",
+      warning: "#F59E0B",
+      error: "#EF4444",
+      info: "#3B82F6",
+      focus: "#3B82F6",
+      selection: "rgba(59, 130, 246, 0.1)",
+      overlay: "rgba(0, 0, 0, 0.5)",
+    };
+
+    updateColorPalette(defaultColorPalette);
+  }, [enableColorManagement, updateColorPalette]);
 
   const resetTheme = useCallback(() => {
     dispatch(themeActions.resetTheme());
@@ -429,7 +552,91 @@ export const ThemeProvider: React.FC<ThemeProviderProps> = ({
     dispatch(themeActions.setError(null));
   }, []);
 
-  // Enhanced context value with typography support
+  const uploadLogo = useCallback(
+    async (file: File) => {
+      try {
+        const logoFile = await BasicFileUploadManager.uploadLogo(file);
+
+        // Create complete LogoConfig object
+        const logoConfig: LogoConfig = {
+          enabled: true,
+          file: logoFile,
+          display: {
+            position: "header-left",
+            alignment: "left",
+            size: "md",
+            opacity: 1,
+            padding: { top: 8, right: 8, bottom: 8, left: 8 },
+            margin: { top: 0, right: 0, bottom: 0, left: 0 },
+          },
+          responsive: {
+            mobile: { enabled: true },
+            tablet: { enabled: true },
+            desktop: { enabled: true },
+            breakpoints: { mobile: 768, tablet: 1024, desktop: 1200 },
+          },
+          accessibility: {
+            altText: logoFile.fileName || "Logo",
+            focusable: true,
+          },
+          performance: {
+            lazy: false,
+            preload: true,
+            optimizeForRetina: true,
+            showPlaceholder: false,
+          },
+        };
+
+        updateTheme({ logoConfig });
+      } catch (error) {
+        const message =
+          error instanceof Error
+            ? error.message
+            : typeof error === "string"
+            ? error
+            : "Unknown error";
+        dispatch(themeActions.setError(`Logo upload failed: ${message}`));
+      }
+    },
+    [updateTheme]
+  );
+
+  const uploadBackground = useCallback(
+    async (file: File) => {
+      try {
+        const imageConfig = await BasicFileUploadManager.uploadBackgroundImage(
+          file
+        );
+
+        // Create complete BackgroundConfig object
+        const backgroundConfig: BackgroundConfig = {
+          type: "image",
+          image: imageConfig,
+          accessibility: {
+            contrastRatio: 4.5,
+            isReadable: true,
+            wcagLevel: "AA",
+          },
+          performance: {
+            isOptimized: false,
+            fileSize: imageConfig.fileSize,
+          },
+        };
+
+        updateTheme({ backgroundConfig });
+      } catch (error) {
+        const message =
+          error instanceof Error
+            ? error.message
+            : typeof error === "string"
+            ? error
+            : "Unknown error";
+        dispatch(themeActions.setError(`background upload failed: ${message}`));
+      }
+    },
+    [updateTheme]
+  );
+  // Enhanced context value with button and color customization support
   const contextValue: ThemeContextValue = useMemo(
     () => ({
       // Current state
@@ -440,14 +647,26 @@ export const ThemeProvider: React.FC<ThemeProviderProps> = ({
       updateTheme,
       resetTheme,
 
-      // Typography management (NEW)
+      // Typography management
       updateTypography,
       resetTypography,
+
+      // Button customization management (NEW)
+      updateButtonCustomization,
+      resetButtonCustomization,
+
+      // Color palette management (NEW)
+      updateColorPalette,
+      resetColorPalette,
 
       // Preview mode
       enablePreviewMode,
       disablePreviewMode,
       commitPreview,
+
+      //logo & background
+      uploadLogo,
+      uploadBackground,
 
       // Persistence
       saveTheme,
@@ -467,6 +686,10 @@ export const ThemeProvider: React.FC<ThemeProviderProps> = ({
       resetTheme,
       updateTypography,
       resetTypography,
+      updateButtonCustomization,
+      resetButtonCustomization,
+      updateColorPalette,
+      resetColorPalette,
       enablePreviewMode,
       disablePreviewMode,
       commitPreview,
@@ -475,6 +698,8 @@ export const ThemeProvider: React.FC<ThemeProviderProps> = ({
       validateTheme,
       generateCSSProperties,
       clearError,
+      uploadLogo,
+      uploadBackground,
     ]
   );
 
@@ -500,7 +725,7 @@ export const ThemeProvider: React.FC<ThemeProviderProps> = ({
   );
 };
 
-// Enhanced higher-order component for theme injection with typography
+// Enhanced higher-order component for theme injection with button and color support
 export const withTheme = <P extends object>(
   Component: React.ComponentType<P & { theme: Theme }>
 ) => {
@@ -555,7 +780,7 @@ export const useThemeUpdates = () => {
   };
 };
 
-// NEW: Hook for typography management
+// Typography management hook
 export const useTypographyUpdates = () => {
   const { state, updateTypography } = useTheme();
 
@@ -583,7 +808,6 @@ export const useTypographyUpdates = () => {
     [updateTypography]
   );
 
-  // Get font loading state for a specific font
   const getFontLoadingState = useCallback(
     (fontFamily: string) => {
       return fontLoadingStates.get(fontFamily) || "loaded";
@@ -591,7 +815,6 @@ export const useTypographyUpdates = () => {
     [fontLoadingStates]
   );
 
-  // Check if any fonts are currently loading
   const hasLoadingFonts = useMemo(() => {
     return Array.from(fontLoadingStates.values()).some(
       (state) => state === "loading"
@@ -605,6 +828,76 @@ export const useTypographyUpdates = () => {
     fontLoadingStates,
     getFontLoadingState,
     hasLoadingFonts,
+    hasUnsavedChanges: state.hasUnsavedChanges,
+    error: state.error,
+  };
+};
+
+export const useButtonCustomization = () => {
+  const { state, updateButtonCustomization, resetButtonCustomization } =
+    useTheme();
+
+  const currentButtonCustomization = state.currentTheme.buttonCustomization;
+
+  const updateWithValidation = useCallback(
+    (updates: Partial<ButtonCustomization>) => {
+      try {
+        updateButtonCustomization(updates);
+        return { success: true, errors: [] };
+      } catch (error) {
+        return {
+          success: false,
+          errors: [
+            {
+              field: "buttonCustomization",
+              message: error instanceof Error ? error.message : "Unknown error",
+            },
+          ],
+        };
+      }
+    },
+    [updateButtonCustomization]
+  );
+
+  return {
+    currentButtonCustomization,
+    updateButtonCustomization: updateWithValidation,
+    resetButtonCustomization,
+    hasUnsavedChanges: state.hasUnsavedChanges,
+    error: state.error,
+  };
+};
+
+// NEW: Color palette management hook
+export const useColorPalette = () => {
+  const { state, updateColorPalette, resetColorPalette } = useTheme();
+
+  const currentColorPalette = state.currentTheme.colorPalette;
+
+  const updateWithValidation = useCallback(
+    (updates: Partial<ColorPalette>) => {
+      try {
+        updateColorPalette(updates);
+        return { success: true, errors: [] };
+      } catch (error) {
+        return {
+          success: false,
+          errors: [
+            {
+              field: "colorPalette",
+              message: error instanceof Error ? error.message : "Unknown error",
+            },
+          ],
+        };
+      }
+    },
+    [updateColorPalette]
+  );
+
+  return {
+    currentColorPalette,
+    updateColorPalette: updateWithValidation,
+    resetColorPalette,
     hasUnsavedChanges: state.hasUnsavedChanges,
     error: state.error,
   };
@@ -656,7 +949,7 @@ export const useThemeBreakpoints = () => {
   );
 };
 
-// NEW: Hook for typography-specific utilities
+// Typography-specific utilities hook
 export const useTypographyUtils = () => {
   const theme = useCurrentTheme();
   const { state } = useTheme();
@@ -709,11 +1002,13 @@ export const useTypographyUtils = () => {
   };
 };
 
-// Performance monitoring hook with typography metrics
+// Performance monitoring hook with new features
 export const useThemePerformance = () => {
   const performanceRef = useRef({
     themeChanges: 0,
     typographyChanges: 0,
+    buttonChanges: 0, // NEW
+    colorChanges: 0, // NEW
     fontLoads: 0,
     lastChangeTime: Date.now(),
     averageChangeTime: 0,
@@ -738,25 +1033,4 @@ export const useThemePerformance = () => {
       );
     }
   }, [state.currentTheme, state.previewTheme]);
-
-  // Track typography-specific changes
-  useEffect(() => {
-    performanceRef.current.typographyChanges++;
-  }, [state.currentTheme.advancedTypography]);
-
-  // Track font loading
-  useEffect(() => {
-    const loadedFonts = Array.from(state.fontLoadingStates.values()).filter(
-      (state) => state === "loaded"
-    ).length;
-    performanceRef.current.fontLoads = loadedFonts;
-  }, [state.fontLoadingStates]);
-
-  return {
-    themeChanges: performanceRef.current.themeChanges,
-    typographyChanges: performanceRef.current.typographyChanges,
-    fontLoads: performanceRef.current.fontLoads,
-    averageChangeTime: performanceRef.current.averageChangeTime,
-    getPerformanceMetrics: () => ({ ...performanceRef.current }),
-  };
 };

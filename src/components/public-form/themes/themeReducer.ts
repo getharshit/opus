@@ -89,7 +89,7 @@ export const themeReducer = (state: ThemeState, action: ThemeAction): ThemeState
           buttonCustomization: {
             ...state.currentTheme.buttonCustomization,
             ...action.payload,
-          },
+          } as ButtonCustomization,
           updatedAt: new Date(),
         },
         hasUnsavedChanges: true,
@@ -104,7 +104,7 @@ export const themeReducer = (state: ThemeState, action: ThemeAction): ThemeState
           colorPalette: {
             ...state.currentTheme.colorPalette,
             ...action.payload,
-          },
+          } as ColorPalette,
           // Also update the main colors object for backward compatibility
           colors: {
             ...state.currentTheme.colors,

@@ -3,6 +3,8 @@
 import { TypographyConfig } from './typography/types';
 import { ButtonCustomization } from './buttons/types';
 import { ColorPalette } from './colors/types';
+import { LogoConfig } from './logos/types';           // ADD THIS
+import { BackgroundConfig } from './backgrounds/types';
 
 export interface ThemeColors {
     // Primary colors
@@ -162,6 +164,8 @@ export interface Theme {
     advancedTypography?: TypographyConfig; // Optional advanced typography configuration
     buttonCustomization?: ButtonCustomization; // NEW: Button customization
     colorPalette?: ColorPalette; // NEW: Extended color palette
+    logoConfig?: LogoConfig;              // NEW
+    backgroundConfig?: BackgroundConfig;
     spacing: ThemeSpacing;
     borderRadius: ThemeBorderRadius;
     shadows: ThemeShadows;
@@ -454,6 +458,10 @@ export interface ThemeContextValue {
     // Utilities
     validateTheme: (theme: Partial<Theme>) => ThemeValidationResult;
     generateCSSProperties: (theme: Theme) => CSSCustomProperties;
+
+    // File upload methods (NEW)
+    uploadLogo: (file: File) => Promise<void>;
+    uploadBackground: (file: File) => Promise<void>;
     
     // Error handling
     clearError: () => void;
