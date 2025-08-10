@@ -26,32 +26,30 @@ export const AnimatedProgressIndicator: React.FC<
   customVariants,
   customTransition,
   ...motionProps
-}) => {
-  const { config, getTransition } = useAnimation();
+}: AnimatedProgressIndicatorProps) => {
+  const { config, getIntensitySettings } = useAnimation();
+  const intensitySettings = getIntensitySettings();
 
-  // Get transition for progress animations - Fixed to include all required properties
-  const transition =
-    customTransition ||
-    getTransition(
-      {
-        duration: config.progress.bar.duration,
-        delay: 0,
-        stagger: 0,
-      },
-      config.progress.bar.easing
-    );
+  // Create transitions based on intensity
+  const barTransition = customTransition || {
+    duration: intensitySettings.duration,
+    ease: intensitySettings.easing.type === "spring" ? undefined : "easeOut",
+    ...(intensitySettings.easing.type === "spring" && {
+      type: "spring",
+      stiffness: intensitySettings.easing.stiffness || 300,
+      damping: intensitySettings.easing.damping || 25,
+    }),
+  };
 
-  const stepsTransition = getTransition(
-    {
-      duration: config.progress.steps.duration,
-      delay: 0,
-      stagger: config.progress.steps.stagger,
-    },
-    { type: "easeOut" }
-  );
+  const stepsTransition = {
+    duration: intensitySettings.duration * 0.8,
+    ease: "easeOut" as const,
+  };
+
+  const stepStagger = config.intensity === "playful" ? 0.1 : 0.05;
 
   // If animations are disabled
-  if (!config.enabled) {
+  if (!config.enabled || config.intensity === "none") {
     return renderStaticProgress();
   }
 
@@ -59,7 +57,7 @@ export const AnimatedProgressIndicator: React.FC<
     switch (type) {
       case "bar":
         return (
-          <div className={`w-full ${className}`}>
+          <div className={`w-full ${className}`} data-animated="false">
             {showPercentage && (
               <div className="flex justify-between items-center mb-2">
                 <span className="text-sm text-gray-600">Progress</span>
@@ -79,7 +77,10 @@ export const AnimatedProgressIndicator: React.FC<
 
       case "circle":
         return (
-          <div className={`flex justify-center ${className}`}>
+          <div
+            className={`flex justify-center ${className}`}
+            data-animated="false"
+          >
             <div className="relative w-16 h-16">
               <svg
                 className="w-16 h-16 transform -rotate-90"
@@ -120,6 +121,7 @@ export const AnimatedProgressIndicator: React.FC<
         return (
           <div
             className={`flex items-center justify-center space-x-4 ${className}`}
+            data-animated="false"
           >
             {Array.from({ length: steps }).map((_, index) => (
               <div key={index} className="flex items-center">
@@ -152,13 +154,13 @@ export const AnimatedProgressIndicator: React.FC<
   switch (type) {
     case "bar":
       return (
-        <div className={`w-full ${className}`}>
+        <div className={`w-full ${className}`} data-animated="true">
           {showPercentage && (
             <motion.div
               className="flex justify-between items-center mb-2"
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
-              transition={{ duration: 0.2 }}
+              transition={{ duration: intensitySettings.duration * 0.5 }}
             >
               <span className="text-sm text-gray-600">Progress</span>
               <motion.span
@@ -166,7 +168,7 @@ export const AnimatedProgressIndicator: React.FC<
                 key={progress}
                 initial={{ scale: 0.8 }}
                 animate={{ scale: 1 }}
-                transition={{ duration: 0.2 }}
+                transition={{ duration: intensitySettings.duration * 0.5 }}
               >
                 {Math.round(progress)}%
               </motion.span>
@@ -177,7 +179,10 @@ export const AnimatedProgressIndicator: React.FC<
               className="bg-blue-600 h-2 rounded-full"
               initial={{ width: 0 }}
               animate={{ width: `${progress}%` }}
-              transition={transition}
+              transition={barTransition}
+              style={{
+                willChange: config.enabled ? "width" : "auto",
+              }}
               {...motionProps}
             />
           </div>
@@ -189,7 +194,10 @@ export const AnimatedProgressIndicator: React.FC<
       const strokeDashoffset = circumference * (1 - progress / 100);
 
       return (
-        <div className={`flex justify-center ${className}`}>
+        <div
+          className={`flex justify-center ${className}`}
+          data-animated="true"
+        >
           <div className="relative w-16 h-16">
             <svg className="w-16 h-16 transform -rotate-90" viewBox="0 0 64 64">
               <circle
@@ -214,7 +222,10 @@ export const AnimatedProgressIndicator: React.FC<
                 strokeLinecap="round"
                 initial={{ strokeDashoffset: circumference }}
                 animate={{ strokeDashoffset }}
-                transition={transition}
+                transition={barTransition}
+                style={{
+                  willChange: config.enabled ? "stroke-dashoffset" : "auto",
+                }}
                 {...motionProps}
               />
             </svg>
@@ -224,7 +235,7 @@ export const AnimatedProgressIndicator: React.FC<
                 key={progress}
                 initial={{ scale: 0.8, opacity: 0 }}
                 animate={{ scale: 1, opacity: 1 }}
-                transition={{ duration: 0.2 }}
+                transition={{ duration: intensitySettings.duration * 0.5 }}
               >
                 {Math.round(progress)}%
               </motion.span>
@@ -237,6 +248,7 @@ export const AnimatedProgressIndicator: React.FC<
       return (
         <div
           className={`flex items-center justify-center space-x-4 ${className}`}
+          data-animated="true"
         >
           {Array.from({ length: steps }).map((_, index) => (
             <div key={index} className="flex items-center">
@@ -254,9 +266,17 @@ export const AnimatedProgressIndicator: React.FC<
                 }}
                 transition={{
                   ...stepsTransition,
-                  delay: index * config.progress.steps.stagger,
+                  delay: index * stepStagger,
                 }}
-                whileHover={{ scale: 1.1 }}
+                whileHover={
+                  config.intensity === "playful" ? { scale: 1.1 } : undefined
+                }
+                style={{
+                  willChange:
+                    config.intensity !== "none"
+                      ? "transform, background-color"
+                      : "auto",
+                }}
                 {...motionProps}
               >
                 {index + 1}
@@ -274,9 +294,15 @@ export const AnimatedProgressIndicator: React.FC<
                   }}
                   transition={{
                     ...stepsTransition,
-                    delay: (index + 0.5) * config.progress.steps.stagger,
+                    delay: (index + 0.5) * stepStagger,
                   }}
-                  style={{ originX: 0 }}
+                  style={{
+                    originX: 0,
+                    willChange:
+                      config.intensity !== "none"
+                        ? "transform, background-color"
+                        : "auto",
+                  }}
                 />
               )}
             </div>

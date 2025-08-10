@@ -21,32 +21,98 @@ export const AnimatedStepTransition: React.FC<AnimatedStepTransitionProps> = ({
   customTransition,
   ...motionProps
 }) => {
-  const { config, variants, getTransition } = useAnimation();
+  const { config, getIntensitySettings } = useAnimation();
+  const intensitySettings = getIntensitySettings();
 
-  // Determine variants based on direction
-  const getStepVariants = () => {
+  // Create direction-aware variants based on intensity
+  const createStepVariants = () => {
     if (customVariants) return customVariants;
+
+    // Base movement distance based on intensity
+    const moveDistance =
+      config.intensity === "none"
+        ? 0
+        : {
+            subtle: 20,
+            moderate: 50,
+            playful: 80,
+          }[config.intensity] || 50;
 
     switch (direction) {
       case "forward":
-        return variants.step.slideForward;
+        return {
+          hidden: {
+            opacity: 0,
+            x: moveDistance,
+            willChange: config.enabled ? "opacity, transform" : "auto",
+          },
+          visible: {
+            opacity: 1,
+            x: 0,
+            willChange: "auto",
+          },
+          exit: {
+            opacity: 0,
+            x: -moveDistance,
+            willChange: config.enabled ? "opacity, transform" : "auto",
+          },
+        };
       case "backward":
-        return variants.step.slideBackward;
+        return {
+          hidden: {
+            opacity: 0,
+            x: -moveDistance,
+            willChange: config.enabled ? "opacity, transform" : "auto",
+          },
+          visible: {
+            opacity: 1,
+            x: 0,
+            willChange: "auto",
+          },
+          exit: {
+            opacity: 0,
+            x: moveDistance,
+            willChange: config.enabled ? "opacity, transform" : "auto",
+          },
+        };
       default:
-        return variants.step.fade;
+        return {
+          hidden: {
+            opacity: 0,
+            willChange: config.enabled ? "opacity" : "auto",
+          },
+          visible: {
+            opacity: 1,
+            willChange: "auto",
+          },
+          exit: {
+            opacity: 0,
+            willChange: config.enabled ? "opacity" : "auto",
+          },
+        };
     }
   };
 
-  const stepVariants = getStepVariants();
+  const stepVariants = createStepVariants();
 
-  // Get transition
-  const transition =
-    customTransition ||
-    getTransition(config.stepTransition.timing, config.stepTransition.easing);
+  // Get transition with intensity awareness
+  const transition = customTransition || {
+    duration: intensitySettings.duration,
+    ease: intensitySettings.easing.type === "spring" ? undefined : "easeInOut",
+    ...(intensitySettings.easing.type === "spring" && {
+      type: "spring",
+      stiffness: intensitySettings.easing.stiffness || 300,
+      damping: intensitySettings.easing.damping || 25,
+    }),
+  };
 
   // If animations are disabled
   if (!config.enabled) {
-    return <div className={className}>{children}</div>;
+    return (
+      <div className={className} data-animated="false">
+        {children}
+      </div>
+    );
   }
 
   return (
@@ -59,6 +125,7 @@ export const AnimatedStepTransition: React.FC<AnimatedStepTransitionProps> = ({
           animate="visible"
           exit="exit"
           transition={transition}
+          data-animated="true"
           {...motionProps}
         >
           {children}

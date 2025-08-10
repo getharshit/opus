@@ -2,7 +2,7 @@
 
 import React from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { useAnimation } from "../AnimationProvider";
+import { useAnimation, useErrorAnimation } from "../AnimationProvider";
 import { AnimatedComponentProps } from "../types";
 
 interface AnimatedErrorMessageProps extends AnimatedComponentProps {
@@ -19,19 +19,52 @@ export const AnimatedErrorMessage: React.FC<AnimatedErrorMessageProps> = ({
   customTransition,
   ...motionProps
 }) => {
-  const { config, variants, getTransition } = useAnimation();
+  const { config, getIntensitySettings } = useAnimation();
+  const errorVariants = useErrorAnimation();
+  const intensitySettings = getIntensitySettings();
 
-  // Get error variants
-  const errorVariants = customVariants || variants.error.shake;
+  // Use custom variants or intensity-aware error variants
+  const variants = customVariants || {
+    hidden: {
+      opacity: 0,
+      y: -10,
+      scale: 0.95,
+      willChange: config.intensity !== "none" ? "opacity, transform" : "auto",
+    },
+    visible: {
+      opacity: 1,
+      y: 0,
+      scale: 1,
+      willChange: "auto",
+      // Add shake effect based on intensity
+      ...(config.intensity !== "none" &&
+        typeof errorVariants.visible === "object" &&
+        errorVariants.visible &&
+        "x" in errorVariants.visible && {
+          x: errorVariants.visible.x,
+        }),
+    },
+    exit: {
+      opacity: 0,
+      y: -5,
+      scale: 0.98,
+      willChange: config.intensity !== "none" ? "opacity, transform" : "auto",
+    },
+  };
 
-  // Get transition
-  const transition =
-    customTransition ||
-    getTransition(config.error.timing, { type: "easeInOut" });
+  // Get transition with intensity settings
+  const transition = customTransition || {
+    duration: intensitySettings.duration,
+    ease: "easeOut", // Always use easeOut for error messages to support shake keyframes
+  };
 
   // If animations are disabled
-  if (!config.enabled) {
-    return isVisible ? <div className={className}>{children}</div> : null;
+  if (!config.enabled || config.intensity === "none") {
+    return isVisible ? (
+      <div className={className} data-animated="false">
+        {children}
+      </div>
+    ) : null;
   }
 
   return (
@@ -39,11 +72,12 @@ export const AnimatedErrorMessage: React.FC<AnimatedErrorMessageProps> = ({
       {isVisible && (
         <motion.div
           className={className}
-          variants={errorVariants}
+          variants={variants}
           initial="hidden"
           animate="visible"
-          exit="hidden"
+          exit="exit"
           transition={transition}
+          data-animated="true"
           {...motionProps}
         >
           {children}

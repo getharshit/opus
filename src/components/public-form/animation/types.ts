@@ -1,9 +1,9 @@
 import { Variants, Transition, MotionProps } from 'framer-motion';
 
-// Animation intensity levels
-export type AnimationIntensity = 'none' | 'subtle' | 'normal' | 'dynamic';
+// Animation intensity levels - Updated to match specifications
+export type AnimationIntensity = 'none' | 'subtle' | 'moderate' | 'playful';
 
-// Animation preset types - Updated to include all presets
+// Animation preset types
 export type AnimationPreset = 
   | 'fade'
   | 'slideUp'
@@ -14,25 +14,41 @@ export type AnimationPreset =
   | 'scaleUp'
   | 'scaleDown'
   | 'bounce'
-  | 'elastic'
   | 'spring'
-  | 'shake'      // Added missing presets
-  | 'pulse'      // Added missing presets
-  | 'checkmark'; // Added missing presets
+  | 'shake'
+  | 'pulse';
 
 // Animation timing configuration
 export interface AnimationTiming {
   duration: number;
   delay: number;
-  stagger: number; // For sequential animations
+  stagger: number;
 }
 
 // Easing configuration
 export interface AnimationEasing {
-  type: 'linear' | 'easeIn' | 'easeOut' | 'easeInOut' | 'spring' | 'anticipate';
-  stiffness?: number; // For spring animations
-  damping?: number;   // For spring animations
-  mass?: number;      // For spring animations
+  type: 'linear' | 'easeIn' | 'easeOut' | 'easeInOut' | 'spring';
+  stiffness?: number;
+  damping?: number;
+  mass?: number;
+}
+
+// Intensity-specific animation settings
+export interface IntensitySettings {
+  duration: number;
+  easing: AnimationEasing;
+  scale: {
+    hover: number;
+    tap: number;
+  };
+  shake: {
+    intensity: number;
+    duration: number;
+  };
+  bounce: {
+    stiffness: number;
+    damping: number;
+  };
 }
 
 // Complete animation configuration
@@ -42,27 +58,20 @@ export interface AnimationConfig {
   respectReducedMotion: boolean;
   intensity: AnimationIntensity;
   
+  // Intensity configurations
+  intensitySettings: Record<AnimationIntensity, IntensitySettings>;
+  
   // Field animations
   fieldEntrance: {
     preset: AnimationPreset;
     timing: AnimationTiming;
     easing: AnimationEasing;
-    customVariants?: Variants;
   };
   
   fieldExit: {
     preset: AnimationPreset;
     timing: AnimationTiming;
     easing: AnimationEasing;
-    customVariants?: Variants;
-  };
-  
-  // Step transition animations
-  stepTransition: {
-    preset: AnimationPreset;
-    timing: AnimationTiming;
-    easing: AnimationEasing;
-    direction: 'forward' | 'backward' | 'auto';
   };
   
   // Button animations
@@ -82,45 +91,44 @@ export interface AnimationConfig {
     };
   };
   
-  // Error animations
+  // State animations
   error: {
     preset: AnimationPreset;
     timing: AnimationTiming;
-    shake?: {
+    shake: {
       intensity: number;
       duration: number;
     };
   };
   
-  // Success animations
   success: {
     preset: AnimationPreset;
     timing: AnimationTiming;
-    confetti?: boolean;
+    bounce: {
+      stiffness: number;
+      damping: number;
+    };
   };
   
-  // Progress animations
-  progress: {
-    bar: {
-      duration: number;
-      easing: AnimationEasing;
-    };
-    steps: {
-      duration: number;
-      stagger: number;
-    };
+  // Performance settings
+  performance: {
+    enableGPU: boolean;
+    enableWillChange: boolean;
+    cleanupOnUnmount: boolean;
   };
 }
 
-// Animation context value - Fixed isReducedMotion type
+// Animation context value
 export interface AnimationContextValue {
   config: AnimationConfig;
   variants: AnimationVariants;
   transitions: AnimationTransitions;
   updateConfig: (updates: Partial<AnimationConfig>) => void;
-  isReducedMotion: boolean; // Changed from boolean | null to boolean
+  updateIntensity: (intensity: AnimationIntensity) => void;
+  isReducedMotion: boolean;
   getFieldVariants: (preset: AnimationPreset) => Variants;
   getTransition: (timing: AnimationTiming, easing: AnimationEasing) => Transition;
+  getIntensitySettings: () => IntensitySettings;
 }
 
 // Pre-built animation variants
@@ -135,27 +143,17 @@ export interface AnimationVariants {
     scaleUp: Variants;
     scaleDown: Variants;
     bounce: Variants;
-    elastic: Variants;
     spring: Variants;
-  };
-  
-  step: {
-    slideForward: Variants;
-    slideBackward: Variants;
-    fade: Variants;
-    scale: Variants;
   };
   
   error: {
     shake: Variants;
     pulse: Variants;
-    bounce: Variants;
   };
   
   success: {
     scale: Variants;
     bounce: Variants;
-    checkmark: Variants;
   };
   
   button: {
@@ -167,12 +165,12 @@ export interface AnimationVariants {
 
 // Animation transitions
 export interface AnimationTransitions {
-  default: Transition;
-  fast: Transition;
-  slow: Transition;
+  none: Transition;
+  subtle: Transition;
+  moderate: Transition;
+  playful: Transition;
   spring: Transition;
   bounce: Transition;
-  elastic: Transition;
 }
 
 // Component animation props

@@ -6,13 +6,17 @@ import React, {
   useEffect,
   useState,
   useMemo,
+  useCallback,
+  useRef,
 } from "react";
-import { useReducedMotion } from "framer-motion";
+import { useReducedMotion, Variants } from "framer-motion";
 import {
   AnimationConfig,
   AnimationContextValue,
   AnimationIntensity,
   AnimationPreset,
+  IntensitySettings,
+  AnimationVariants,
 } from "./types";
 import {
   createAnimationVariants,
@@ -20,13 +24,20 @@ import {
   getVariantsByPreset,
   createTransition,
   adjustAnimationIntensity,
+  intensityConfigurations,
+  createButtonVariants,
+  createShakeVariants,
+  optimizeVariantsForPerformance,
 } from "./presets";
 
-// Default animation configuration
+// Create default animation configuration with intensity system
 const createDefaultAnimationConfig = (): AnimationConfig => ({
   enabled: true,
   respectReducedMotion: true,
-  intensity: "normal",
+  intensity: "moderate",
+
+  // Intensity configurations
+  intensitySettings: intensityConfigurations,
 
   fieldEntrance: {
     preset: "slideUp",
@@ -38,13 +49,6 @@ const createDefaultAnimationConfig = (): AnimationConfig => ({
     preset: "fade",
     timing: { duration: 0.2, delay: 0, stagger: 0 },
     easing: { type: "easeIn" },
-  },
-
-  stepTransition: {
-    preset: "slideLeft",
-    timing: { duration: 0.4, delay: 0, stagger: 0 },
-    easing: { type: "easeInOut" },
-    direction: "auto",
   },
 
   button: {
@@ -64,7 +68,7 @@ const createDefaultAnimationConfig = (): AnimationConfig => ({
   },
 
   error: {
-    preset: "shake", // This should now work with updated AnimationPreset type
+    preset: "shake",
     timing: { duration: 0.5, delay: 0, stagger: 0 },
     shake: {
       intensity: 10,
@@ -75,18 +79,17 @@ const createDefaultAnimationConfig = (): AnimationConfig => ({
   success: {
     preset: "bounce",
     timing: { duration: 0.6, delay: 0, stagger: 0 },
-    confetti: true,
+    bounce: {
+      stiffness: 400,
+      damping: 10,
+    },
   },
 
-  progress: {
-    bar: {
-      duration: 0.3,
-      easing: { type: "easeOut" },
-    },
-    steps: {
-      duration: 0.2,
-      stagger: 0.1,
-    },
+  // Performance settings
+  performance: {
+    enableGPU: true,
+    enableWillChange: true,
+    cleanupOnUnmount: true,
   },
 });
 
@@ -115,73 +118,133 @@ export const AnimationProvider: React.FC<AnimationProviderProps> = ({
     ...initialConfig,
   }));
 
-  // Determine if animations should be disabled - Fixed type handling
-  const isReducedMotion =
-    config.respectReducedMotion && (prefersReducedMotion ?? false);
+  // Track previous intensity for cleanup
+  const previousIntensity = useRef<AnimationIntensity>(config.intensity);
+
+  // Determine if animations should be disabled
+  const isReducedMotion = Boolean(
+    config.respectReducedMotion && prefersReducedMotion
+  );
+  const effectiveIntensity: AnimationIntensity = isReducedMotion
+    ? "none"
+    : config.intensity;
   const animationsEnabled = config.enabled && !isReducedMotion;
 
-  // Create variants and transitions
-  const variants = useMemo(() => createAnimationVariants(), []);
+  // Create variants and transitions with proper typing
+  const variants = useMemo(() => {
+    const baseVariants = createAnimationVariants();
+    return baseVariants;
+  }, []);
+
   const transitions = useMemo(() => createAnimationTransitions(), []);
 
-  // Adjust config based on reduced motion preference
+  // Get current intensity settings
+  const getCurrentIntensitySettings = useCallback((): IntensitySettings => {
+    return config.intensitySettings[effectiveIntensity];
+  }, [config.intensitySettings, effectiveIntensity]);
+
+  // Update configuration with immediate application
+  const updateConfig = useCallback((updates: Partial<AnimationConfig>) => {
+    setConfig((prev) => {
+      const newConfig = { ...prev, ...updates };
+
+      // If intensity changed, update the ref
+      if (updates.intensity && updates.intensity !== prev.intensity) {
+        previousIntensity.current = prev.intensity;
+      }
+
+      return newConfig;
+    });
+  }, []);
+
+  // Update intensity with immediate effect
+  const updateIntensity = useCallback(
+    (intensity: AnimationIntensity) => {
+      updateConfig({ intensity });
+    },
+    [updateConfig]
+  );
+
+  // Apply reduced motion preference changes
   useEffect(() => {
-    if (isReducedMotion) {
-      setConfig((prev) => ({
-        ...prev,
-        intensity: "none",
-        fieldEntrance: {
-          ...prev.fieldEntrance,
-          preset: "fade",
-          timing: { ...prev.fieldEntrance.timing, duration: 0.1 },
-        },
-        fieldExit: {
-          ...prev.fieldExit,
-          timing: { ...prev.fieldExit.timing, duration: 0.1 },
-        },
-        stepTransition: {
-          ...prev.stepTransition,
-          preset: "fade",
-          timing: { ...prev.stepTransition.timing, duration: 0.1 },
-        },
-      }));
+    if (isReducedMotion && config.intensity !== "none") {
+      console.log("Reduced motion detected, animations disabled");
     }
-  }, [isReducedMotion]);
+  }, [isReducedMotion, config.intensity]);
 
-  const updateConfig = (updates: Partial<AnimationConfig>) => {
-    setConfig((prev) => ({ ...prev, ...updates }));
-  };
+  // Get field variants with intensity adjustment - returns Framer Motion Variants
+  const getFieldVariants = useCallback(
+    (preset: AnimationPreset): Variants => {
+      if (!animationsEnabled || effectiveIntensity === "none") {
+        return {
+          hidden: { opacity: 1 },
+          visible: { opacity: 1 },
+          exit: { opacity: 1 },
+        };
+      }
 
-  const getFieldVariants = (preset: AnimationPreset) => {
-    if (!animationsEnabled) {
-      return {
-        hidden: { opacity: 1 },
-        visible: { opacity: 1 },
-        exit: { opacity: 1 },
-      };
-    }
+      return getVariantsByPreset(preset, variants, effectiveIntensity);
+    },
+    [animationsEnabled, effectiveIntensity, variants]
+  );
 
-    const baseVariants = getVariantsByPreset(preset, variants);
-    return adjustAnimationIntensity(baseVariants, config.intensity);
-  };
+  // Get transition with intensity
+  const getTransition = useCallback(
+    (timing: any, easing: any) => {
+      if (!animationsEnabled || effectiveIntensity === "none") {
+        return { duration: 0 };
+      }
 
-  const getTransition = (timing: any, easing: any) => {
-    if (!animationsEnabled) {
-      return { duration: 0 };
-    }
+      return createTransition(timing, easing, effectiveIntensity);
+    },
+    [animationsEnabled, effectiveIntensity]
+  );
 
-    return createTransition(timing, easing);
-  };
+  // Cleanup effect with proper ref handling
+  useEffect(() => {
+    // Store current cleanup setting in effect scope
+    const shouldCleanup = config.performance.cleanupOnUnmount;
 
-  const contextValue: AnimationContextValue = {
-    config,
-    variants,
-    transitions,
-    updateConfig,
-    isReducedMotion, // Now properly typed as boolean
-    getFieldVariants,
-    getTransition,
-  };
+    return () => {
+      if (shouldCleanup) {
+        // Reset willChange on all animated elements
+        const animatedElements = document.querySelectorAll(
+          '[data-animated="true"]'
+        );
+        animatedElements.forEach((el) => {
+          const element = el as HTMLElement;
+          element.style.willChange = "auto";
+          element.removeAttribute("data-animated");
+        });
+      }
+    };
+  }, [config.performance.cleanupOnUnmount]);
+
+  // Context value with memoization for performance
+  const contextValue: AnimationContextValue = useMemo(
+    () => ({
+      config,
+      variants,
+      transitions,
+      updateConfig,
+      updateIntensity,
+      isReducedMotion,
+      getFieldVariants,
+      getTransition,
+      getIntensitySettings: getCurrentIntensitySettings,
+    }),
+    [
+      config,
+      variants,
+      transitions,
+      updateConfig,
+      updateIntensity,
+      isReducedMotion,
+      getFieldVariants,
+      getTransition,
+      getCurrentIntensitySettings,
+    ]
+  );
 
   return (
     <AnimationContext.Provider value={contextValue}>
@@ -190,7 +253,7 @@ export const AnimationProvider: React.FC<AnimationProviderProps> = ({
   );
 };
 
-// Hook for accessing animation settings from customization
+// Hook for accessing animation settings from form customization
 export const useAnimationFromCustomization = (customization?: any) => {
   const animation = useAnimation();
 
@@ -204,6 +267,48 @@ export const useAnimationFromCustomization = (customization?: any) => {
   }, [customization, animation]);
 
   return animation;
+};
+
+// Hook for intensity-specific button animations
+export const useButtonAnimation = (): Variants => {
+  const { config, isReducedMotion } = useAnimation();
+  const effectiveIntensity = isReducedMotion ? "none" : config.intensity;
+
+  return useMemo(() => {
+    return createButtonVariants(effectiveIntensity);
+  }, [effectiveIntensity]);
+};
+
+// Hook for error animations with intensity
+export const useErrorAnimation = (): Variants => {
+  const { config, isReducedMotion } = useAnimation();
+  const effectiveIntensity = isReducedMotion ? "none" : config.intensity;
+
+  return useMemo(() => {
+    return createShakeVariants(effectiveIntensity);
+  }, [effectiveIntensity]);
+};
+
+// Hook for form-specific animations
+export const useFormAnimations = () => {
+  const { getFieldVariants, getTransition, config } = useAnimation();
+
+  return useMemo(
+    () => ({
+      // Field entrance animation
+      fieldEntrance: getFieldVariants(config.fieldEntrance.preset),
+      // Field exit animation
+      fieldExit: getFieldVariants(config.fieldExit.preset),
+      // Success animation
+      success: getFieldVariants(config.success.preset),
+      // Error animation
+      error: getFieldVariants(config.error.preset),
+      // Get transition for timing
+      getFieldTransition: (preset: AnimationPreset) =>
+        getTransition(config.fieldEntrance.timing, config.fieldEntrance.easing),
+    }),
+    [getFieldVariants, getTransition, config]
+  );
 };
 
 // Convert form customization to animation config
@@ -238,30 +343,51 @@ const convertCustomizationToAnimationConfig = (
         duration: 0.2,
       },
     },
-    progress: {
-      bar: {
-        duration: (animationCustomization.transitions?.duration || 300) / 1000,
-        easing: { type: "easeOut" },
-      },
-      steps: {
-        duration: 0.2,
-        stagger: 0.1,
-      },
-    },
   };
 };
 
+// Map string intensity to type
 const mapIntensity = (intensity?: string): AnimationIntensity => {
   switch (intensity) {
     case "none":
       return "none";
     case "subtle":
       return "subtle";
-    case "normal":
-      return "normal";
-    case "dynamic":
-      return "dynamic";
+    case "moderate":
+      return "moderate";
+    case "playful":
+      return "playful";
     default:
-      return "normal";
+      return "moderate";
   }
+};
+
+// Animation performance utilities
+export const useAnimationPerformance = () => {
+  const { config } = useAnimation();
+
+  return useMemo(
+    () => ({
+      // Enable GPU acceleration for an element
+      enableGPU: (element: HTMLElement) => {
+        if (config.performance.enableGPU) {
+          element.style.transform = "translate3d(0, 0, 0)";
+          element.setAttribute("data-animated", "true");
+        }
+      },
+
+      // Clean up animations for an element
+      cleanup: (element: HTMLElement) => {
+        if (config.performance.cleanupOnUnmount) {
+          element.style.willChange = "auto";
+          element.style.transform = "";
+          element.removeAttribute("data-animated");
+        }
+      },
+
+      // Check if animations should be enabled
+      shouldAnimate: config.enabled && config.intensity !== "none",
+    }),
+    [config]
+  );
 };

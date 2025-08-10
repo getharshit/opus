@@ -24,23 +24,34 @@ export const AnimatedFieldContainer: React.FC<AnimatedFieldContainerProps> = ({
   customTransition,
   ...motionProps
 }) => {
-  const { config, getFieldVariants, getTransition } = useAnimation();
+  const { config, getFieldVariants, getTransition, getIntensitySettings } =
+    useAnimation();
 
-  // Determine animation preset
+  // Determine animation preset (use prop, config, or default)
   const preset = animationPreset || config.fieldEntrance.preset;
+
+  // Get intensity settings
+  const intensitySettings = getIntensitySettings();
 
   // Get variants (custom or from preset)
   const variants = customVariants || getFieldVariants(preset);
 
-  // Get transition
+  // Get transition with intensity awareness
   const transition =
     customTransition ||
-    getTransition(config.fieldEntrance.timing, config.fieldEntrance.easing);
+    getTransition(
+      {
+        duration: intensitySettings.duration,
+        delay: config.fieldEntrance.timing.delay,
+        stagger: config.fieldEntrance.timing.stagger,
+      },
+      intensitySettings.easing
+    );
 
   // If animations are disabled or component is disabled
-  if (!config.enabled || disabled) {
+  if (!config.enabled || disabled || config.intensity === "none") {
     return (
-      <div className={className} data-field-id={fieldId}>
+      <div className={className} data-field-id={fieldId} data-animated="false">
         {children}
       </div>
     );
@@ -53,6 +64,7 @@ export const AnimatedFieldContainer: React.FC<AnimatedFieldContainerProps> = ({
           key={fieldId}
           className={className}
           data-field-id={fieldId}
+          data-animated="true"
           variants={variants}
           initial="hidden"
           animate="visible"
