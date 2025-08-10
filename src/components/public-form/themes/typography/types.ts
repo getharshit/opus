@@ -1,4 +1,4 @@
-// src/components/public-form/themes/typography/types.ts
+// src/components/public-form/themes/typography/types.ts - Clean Version
 
 export type FontSizeScale = 'small' | 'medium' | 'large';
 export type FontWeight = 100 | 200 | 300 | 400 | 500 | 600 | 700 | 800 | 900;
@@ -83,9 +83,93 @@ export type TextElementType =
   | 'caption'
   | 'legal';
 
-// Typography mapping for form elements
+// Typography mapping for form elements - Fixed approach
 export interface FormTypographyMapping {
-  [key in TextElementType]: {
+  formTitle: {
+    fontSize: keyof TypographyScale['sizes'];
+    lineHeight: keyof TypographyScale['lineHeights'];
+    letterSpacing: keyof TypographyScale['letterSpacing'];
+    fontWeight: FontWeight;
+    fontFamily: 'primary' | 'secondary' | 'mono';
+  };
+  formDescription: {
+    fontSize: keyof TypographyScale['sizes'];
+    lineHeight: keyof TypographyScale['lineHeights'];
+    letterSpacing: keyof TypographyScale['letterSpacing'];
+    fontWeight: FontWeight;
+    fontFamily: 'primary' | 'secondary' | 'mono';
+  };
+  sectionTitle: {
+    fontSize: keyof TypographyScale['sizes'];
+    lineHeight: keyof TypographyScale['lineHeights'];
+    letterSpacing: keyof TypographyScale['letterSpacing'];
+    fontWeight: FontWeight;
+    fontFamily: 'primary' | 'secondary' | 'mono';
+  };
+  questionLabel: {
+    fontSize: keyof TypographyScale['sizes'];
+    lineHeight: keyof TypographyScale['lineHeights'];
+    letterSpacing: keyof TypographyScale['letterSpacing'];
+    fontWeight: FontWeight;
+    fontFamily: 'primary' | 'secondary' | 'mono';
+  };
+  questionDescription: {
+    fontSize: keyof TypographyScale['sizes'];
+    lineHeight: keyof TypographyScale['lineHeights'];
+    letterSpacing: keyof TypographyScale['letterSpacing'];
+    fontWeight: FontWeight;
+    fontFamily: 'primary' | 'secondary' | 'mono';
+  };
+  inputText: {
+    fontSize: keyof TypographyScale['sizes'];
+    lineHeight: keyof TypographyScale['lineHeights'];
+    letterSpacing: keyof TypographyScale['letterSpacing'];
+    fontWeight: FontWeight;
+    fontFamily: 'primary' | 'secondary' | 'mono';
+  };
+  inputPlaceholder: {
+    fontSize: keyof TypographyScale['sizes'];
+    lineHeight: keyof TypographyScale['lineHeights'];
+    letterSpacing: keyof TypographyScale['letterSpacing'];
+    fontWeight: FontWeight;
+    fontFamily: 'primary' | 'secondary' | 'mono';
+  };
+  buttonText: {
+    fontSize: keyof TypographyScale['sizes'];
+    lineHeight: keyof TypographyScale['lineHeights'];
+    letterSpacing: keyof TypographyScale['letterSpacing'];
+    fontWeight: FontWeight;
+    fontFamily: 'primary' | 'secondary' | 'mono';
+  };
+  helpText: {
+    fontSize: keyof TypographyScale['sizes'];
+    lineHeight: keyof TypographyScale['lineHeights'];
+    letterSpacing: keyof TypographyScale['letterSpacing'];
+    fontWeight: FontWeight;
+    fontFamily: 'primary' | 'secondary' | 'mono';
+  };
+  errorText: {
+    fontSize: keyof TypographyScale['sizes'];
+    lineHeight: keyof TypographyScale['lineHeights'];
+    letterSpacing: keyof TypographyScale['letterSpacing'];
+    fontWeight: FontWeight;
+    fontFamily: 'primary' | 'secondary' | 'mono';
+  };
+  successText: {
+    fontSize: keyof TypographyScale['sizes'];
+    lineHeight: keyof TypographyScale['lineHeights'];
+    letterSpacing: keyof TypographyScale['letterSpacing'];
+    fontWeight: FontWeight;
+    fontFamily: 'primary' | 'secondary' | 'mono';
+  };
+  caption: {
+    fontSize: keyof TypographyScale['sizes'];
+    lineHeight: keyof TypographyScale['lineHeights'];
+    letterSpacing: keyof TypographyScale['letterSpacing'];
+    fontWeight: FontWeight;
+    fontFamily: 'primary' | 'secondary' | 'mono';
+  };
+  legal: {
     fontSize: keyof TypographyScale['sizes'];
     lineHeight: keyof TypographyScale['lineHeights'];
     letterSpacing: keyof TypographyScale['letterSpacing'];

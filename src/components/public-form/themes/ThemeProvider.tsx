@@ -1,4 +1,4 @@
-// src/components/public-form/themes/ThemeProvider.tsx
+// src/components/public-form/themes/ThemeProvider.tsx - Updated with Typography Integration
 
 "use client";
 
@@ -27,6 +27,9 @@ import {
 } from "./themeReducer";
 import { cssPropertyUtils, DebouncedCSSManager } from "./cssProperties";
 import { defaultTheme } from "./defaultTheme";
+import { TypographyConfig } from "./typography/types";
+import { fontLoader } from "./typography/fontLoader";
+import { typographyCSSManager } from "./typography/cssGenerator";
 
 // Theme context
 const ThemeContext = createContext<ThemeContextValue | null>(null);
@@ -85,25 +88,29 @@ class ThemeErrorBoundary extends React.Component<
   }
 }
 
-// Theme provider props
+// Enhanced theme provider props with typography support
 interface ThemeProviderProps {
   children: React.ReactNode;
   initialTheme?: Theme;
   persistenceKey?: string;
   enablePersistence?: boolean;
   enablePreview?: boolean;
+  enableTypographySystem?: boolean; // NEW
   onThemeChange?: (theme: Theme) => void;
+  onTypographyChange?: (typography: TypographyConfig) => void; // NEW
   onError?: (error: string) => void;
 }
 
-// Theme provider component
+// Enhanced theme provider component with typography integration
 export const ThemeProvider: React.FC<ThemeProviderProps> = ({
   children,
   initialTheme,
   persistenceKey = "form-theme",
   enablePersistence = true,
   enablePreview = true,
+  enableTypographySystem = true,
   onThemeChange,
+  onTypographyChange,
   onError,
 }) => {
   // State management
@@ -151,8 +158,18 @@ export const ThemeProvider: React.FC<ThemeProviderProps> = ({
         const cssProperties = cssPropertyUtils.themeToCSS(activeTheme);
         cssManager.current.applyProperties(cssProperties);
 
+        // Apply typography CSS if advanced typography is enabled
+        if (enableTypographySystem && activeTheme.advancedTypography) {
+          typographyCSSManager.applyConfiguration(
+            activeTheme.advancedTypography
+          );
+        }
+
         // Notify parent of theme change
         onThemeChange?.(activeTheme);
+        if (activeTheme.advancedTypography) {
+          onTypographyChange?.(activeTheme.advancedTypography);
+        }
       } catch (error) {
         console.error("Failed to apply theme CSS:", error);
         onError?.("Failed to apply theme styles");
@@ -162,9 +179,50 @@ export const ThemeProvider: React.FC<ThemeProviderProps> = ({
     state.currentTheme,
     state.previewMode,
     state.previewTheme,
+    enableTypographySystem,
     onThemeChange,
+    onTypographyChange,
     onError,
   ]);
+
+  // Handle font loading when typography changes
+  useEffect(() => {
+    if (!enableTypographySystem || !state.currentTheme.advancedTypography) {
+      return;
+    }
+
+    const { primary, secondary, mono, performance } =
+      state.currentTheme.advancedTypography;
+
+    if (performance.preloadFonts) {
+      const fontsToLoad = [primary, secondary, mono].filter(
+        (font) => font.googleFont
+      );
+
+      if (fontsToLoad.length > 0) {
+        dispatch(themeActions.setTypographyLoading(true));
+
+        // Load fonts and track their states
+        fontsToLoad.forEach(async (font) => {
+          try {
+            dispatch(themeActions.setFontLoadingState(font.family, "loading"));
+            await fontLoader.loadFont(font);
+            dispatch(themeActions.setFontLoadingState(font.family, "loaded"));
+          } catch (error) {
+            console.error(`Failed to load font ${font.family}:`, error);
+            dispatch(themeActions.setFontLoadingState(font.family, "error"));
+          }
+        });
+
+        // Wait for all fonts or timeout
+        Promise.allSettled(
+          fontsToLoad.map((font) => fontLoader.loadFont(font))
+        ).finally(() => {
+          dispatch(themeActions.setTypographyLoading(false));
+        });
+      }
+    }
+  }, [enableTypographySystem, state.currentTheme.advancedTypography]);
 
   // Save theme when it changes (debounced)
   const saveThemeToStorage = useCallback(
@@ -234,6 +292,43 @@ export const ThemeProvider: React.FC<ThemeProviderProps> = ({
     },
     [state.currentTheme, onError]
   );
+
+  // NEW: Typography management functions
+  const updateTypography = useCallback(
+    (updates: Partial<TypographyConfig>) => {
+      if (!enableTypographySystem) {
+        console.warn("Typography system is disabled");
+        return;
+      }
+
+      const currentTypography = state.currentTheme.advancedTypography;
+      if (!currentTypography) {
+        console.warn("No advanced typography configuration found");
+        return;
+      }
+
+      const updatedTypography = { ...currentTypography, ...updates };
+
+      // Validate typography updates
+      try {
+        dispatch(themeActions.updateTypography(updatedTypography));
+      } catch (error) {
+        const errorMessage = `Failed to update typography: ${error}`;
+        dispatch(themeActions.setError(errorMessage));
+        onError?.(errorMessage);
+      }
+    },
+    [enableTypographySystem, state.currentTheme.advancedTypography, onError]
+  );
+
+  const resetTypography = useCallback(() => {
+    if (!enableTypographySystem) return;
+
+    const defaultTypography = defaultTheme.advancedTypography;
+    if (defaultTypography) {
+      updateTypography(defaultTypography);
+    }
+  }, [enableTypographySystem, updateTypography]);
 
   const resetTheme = useCallback(() => {
     dispatch(themeActions.resetTheme());
@@ -334,7 +429,7 @@ export const ThemeProvider: React.FC<ThemeProviderProps> = ({
     dispatch(themeActions.setError(null));
   }, []);
 
-  // Context value
+  // Enhanced context value with typography support
   const contextValue: ThemeContextValue = useMemo(
     () => ({
       // Current state
@@ -344,6 +439,10 @@ export const ThemeProvider: React.FC<ThemeProviderProps> = ({
       setTheme,
       updateTheme,
       resetTheme,
+
+      // Typography management (NEW)
+      updateTypography,
+      resetTypography,
 
       // Preview mode
       enablePreviewMode,
@@ -366,6 +465,8 @@ export const ThemeProvider: React.FC<ThemeProviderProps> = ({
       setTheme,
       updateTheme,
       resetTheme,
+      updateTypography,
+      resetTypography,
       enablePreviewMode,
       disablePreviewMode,
       commitPreview,
@@ -383,8 +484,12 @@ export const ThemeProvider: React.FC<ThemeProviderProps> = ({
       if (cssManager.current) {
         cssManager.current.flush();
       }
+      // Cleanup typography CSS if enabled
+      if (enableTypographySystem) {
+        typographyCSSManager.reset();
+      }
     };
-  }, []);
+  }, [enableTypographySystem]);
 
   return (
     <ThemeErrorBoundary>
@@ -395,7 +500,7 @@ export const ThemeProvider: React.FC<ThemeProviderProps> = ({
   );
 };
 
-// Higher-order component for theme injection
+// Enhanced higher-order component for theme injection with typography
 export const withTheme = <P extends object>(
   Component: React.ComponentType<P & { theme: Theme }>
 ) => {
@@ -423,7 +528,7 @@ export const useCurrentTheme = (): Theme => {
     : state.currentTheme;
 };
 
-// Hook for theme updates with validation
+// Enhanced hook for theme updates with validation
 export const useThemeUpdates = () => {
   const { updateTheme, validateTheme, state } = useTheme();
 
@@ -450,6 +555,61 @@ export const useThemeUpdates = () => {
   };
 };
 
+// NEW: Hook for typography management
+export const useTypographyUpdates = () => {
+  const { state, updateTypography } = useTheme();
+
+  const currentTypography = state.currentTheme.advancedTypography;
+  const isLoading = state.typographyLoading;
+  const fontLoadingStates = state.fontLoadingStates;
+
+  const updateTypographyWithValidation = useCallback(
+    (updates: Partial<TypographyConfig>) => {
+      try {
+        updateTypography(updates);
+        return { success: true, errors: [] };
+      } catch (error) {
+        return {
+          success: false,
+          errors: [
+            {
+              field: "typography",
+              message: error instanceof Error ? error.message : "Unknown error",
+            },
+          ],
+        };
+      }
+    },
+    [updateTypography]
+  );
+
+  // Get font loading state for a specific font
+  const getFontLoadingState = useCallback(
+    (fontFamily: string) => {
+      return fontLoadingStates.get(fontFamily) || "loaded";
+    },
+    [fontLoadingStates]
+  );
+
+  // Check if any fonts are currently loading
+  const hasLoadingFonts = useMemo(() => {
+    return Array.from(fontLoadingStates.values()).some(
+      (state) => state === "loading"
+    );
+  }, [fontLoadingStates]);
+
+  return {
+    currentTypography,
+    updateTypography: updateTypographyWithValidation,
+    isLoading,
+    fontLoadingStates,
+    getFontLoadingState,
+    hasLoadingFonts,
+    hasUnsavedChanges: state.hasUnsavedChanges,
+    error: state.error,
+  };
+};
+
 // Hook for preview mode
 export const useThemePreview = () => {
   const { state, enablePreviewMode, disablePreviewMode, commitPreview } =
@@ -470,29 +630,91 @@ export const useCSSProperties = (): CSSCustomProperties => {
   return useMemo(() => cssPropertyUtils.themeToCSS(theme), [theme]);
 };
 
-// Hook for responsive design with theme breakpoints
+// Enhanced hook for responsive design with theme breakpoints
 export const useThemeBreakpoints = () => {
   const theme = useCurrentTheme();
 
   return useMemo(
     () => ({
       breakpoints: theme.breakpoints,
-      isMobile: window.matchMedia(`(max-width: ${theme.breakpoints.sm})`)
-        .matches,
-      isTablet: window.matchMedia(
-        `(min-width: ${theme.breakpoints.sm}) and (max-width: ${theme.breakpoints.lg})`
-      ).matches,
-      isDesktop: window.matchMedia(`(min-width: ${theme.breakpoints.lg})`)
-        .matches,
+      isMobile:
+        typeof window !== "undefined"
+          ? window.matchMedia(`(max-width: ${theme.breakpoints.sm})`).matches
+          : false,
+      isTablet:
+        typeof window !== "undefined"
+          ? window.matchMedia(
+              `(min-width: ${theme.breakpoints.sm}) and (max-width: ${theme.breakpoints.lg})`
+            ).matches
+          : false,
+      isDesktop:
+        typeof window !== "undefined"
+          ? window.matchMedia(`(min-width: ${theme.breakpoints.lg})`).matches
+          : false,
     }),
     [theme.breakpoints]
   );
 };
 
-// Performance monitoring hook
+// NEW: Hook for typography-specific utilities
+export const useTypographyUtils = () => {
+  const theme = useCurrentTheme();
+  const { state } = useTheme();
+
+  const getElementStyles = useCallback(
+    (elementType: string) => {
+      if (!theme.advancedTypography) return {};
+
+      // Return CSS custom properties for the element type
+      return {
+        fontFamily: `var(--form-font-primary)`,
+        fontSize: `var(--form-font-size-${elementType
+          .replace(/([A-Z])/g, "-$1")
+          .toLowerCase()})`,
+        fontWeight: `var(--form-font-weight-${elementType
+          .replace(/([A-Z])/g, "-$1")
+          .toLowerCase()})`,
+        lineHeight: `var(--form-line-height-${elementType
+          .replace(/([A-Z])/g, "-$1")
+          .toLowerCase()})`,
+        letterSpacing: `var(--form-letter-spacing-${elementType
+          .replace(/([A-Z])/g, "-$1")
+          .toLowerCase()})`,
+      };
+    },
+    [theme.advancedTypography]
+  );
+
+  const isTypographyLoaded = useMemo(() => {
+    if (!theme.advancedTypography) return true;
+
+    const fonts = [
+      theme.advancedTypography.primary,
+      theme.advancedTypography.secondary,
+      theme.advancedTypography.mono,
+    ].filter((font) => font.googleFont);
+
+    if (fonts.length === 0) return true;
+
+    return fonts.every(
+      (font) => state.fontLoadingStates.get(font.family) === "loaded"
+    );
+  }, [theme.advancedTypography, state.fontLoadingStates]);
+
+  return {
+    getElementStyles,
+    isTypographyLoaded,
+    hasAdvancedTypography: !!theme.advancedTypography,
+    currentScale: theme.advancedTypography?.scale || "medium",
+  };
+};
+
+// Performance monitoring hook with typography metrics
 export const useThemePerformance = () => {
   const performanceRef = useRef({
     themeChanges: 0,
+    typographyChanges: 0,
+    fontLoads: 0,
     lastChangeTime: Date.now(),
     averageChangeTime: 0,
   });
@@ -517,8 +739,23 @@ export const useThemePerformance = () => {
     }
   }, [state.currentTheme, state.previewTheme]);
 
+  // Track typography-specific changes
+  useEffect(() => {
+    performanceRef.current.typographyChanges++;
+  }, [state.currentTheme.advancedTypography]);
+
+  // Track font loading
+  useEffect(() => {
+    const loadedFonts = Array.from(state.fontLoadingStates.values()).filter(
+      (state) => state === "loaded"
+    ).length;
+    performanceRef.current.fontLoads = loadedFonts;
+  }, [state.fontLoadingStates]);
+
   return {
     themeChanges: performanceRef.current.themeChanges,
+    typographyChanges: performanceRef.current.typographyChanges,
+    fontLoads: performanceRef.current.fontLoads,
     averageChangeTime: performanceRef.current.averageChangeTime,
     getPerformanceMetrics: () => ({ ...performanceRef.current }),
   };

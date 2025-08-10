@@ -1,6 +1,41 @@
-// src/components/public-form/themes/defaultTheme.ts
+// src/components/public-form/themes/defaultTheme.ts - Updated with Typography Integration
 
 import { Theme } from './types';
+import { TypographyConfig } from './typography/types';
+import { defaultFormTypographyMapping } from './typography/cssGenerator';
+import { typographyScales } from './typography/scales';
+import { defaultFonts } from './typography/fontPresets';
+import { systemFonts } from './typography/fontPresets';
+
+/**
+ * Create default advanced typography configuration
+ */
+const createDefaultAdvancedTypography = (): TypographyConfig => ({
+  scale: 'medium',
+  primary: defaultFonts.primary,
+  secondary: defaultFonts.secondary,
+  mono: defaultFonts.mono,
+  mapping: defaultFormTypographyMapping,
+  responsive: {
+    enableScaling: true,
+    breakpoints: {
+      sm: 0.875,
+      md: 1.0,
+      lg: 1.125,
+    },
+  },
+  accessibility: {
+    enforceMinSize: true,
+    minBodySize: 16,
+    maxLineLength: 75,
+    contrastRatio: 4.5,
+  },
+  performance: {
+    preloadFonts: true,
+    fontDisplay: 'swap',
+    loadTimeout: 3000,
+  },
+});
 
 export const createDefaultTheme = (): Theme => ({
   id: 'default',
@@ -85,6 +120,9 @@ export const createDefaultTheme = (): Theme => ({
     letterSpacingWider: 0.05,
   },
   
+  // Advanced typography configuration
+  advancedTypography: createDefaultAdvancedTypography(),
+  
   spacing: {
     // Base spacing unit (in rem)
     unit: 0.25,  // 4px
@@ -161,57 +199,176 @@ export const createDefaultTheme = (): Theme => ({
   updatedAt: new Date(),
 });
 
-export const createDarkTheme = (): Theme => ({
-  ...createDefaultTheme(),
+export const createDarkTheme = (): Theme => {
+  const baseTheme = createDefaultTheme();
   
-  id: 'dark',
-  name: 'Dark Theme',
-  description: 'Modern dark theme optimized for low-light environments',
+  return {
+    ...baseTheme,
+    
+    id: 'dark',
+    name: 'Dark Theme',
+    description: 'Modern dark theme optimized for low-light environments',
+    
+    colors: {
+      // Primary colors (same as light)
+      primary: '#3B82F6',
+      primaryHover: '#2563EB',
+      primaryActive: '#1D4ED8',
+      primaryDisabled: '#1E3A8A',
+      
+      // Secondary colors
+      secondary: '#9CA3AF',
+      secondaryHover: '#D1D5DB',
+      secondaryActive: '#F3F4F6',
+      
+      // Background colors
+      background: '#111827',        // Gray 900
+      surface: '#1F2937',          // Gray 800
+      surfaceElevated: '#374151',   // Gray 700
+      overlay: 'rgba(0, 0, 0, 0.8)', // Darker overlay
+      
+      // Text colors
+      textPrimary: '#F9FAFB',       // Gray 50
+      textSecondary: '#D1D5DB',     // Gray 300
+      textMuted: '#9CA3AF',         // Gray 400
+      textInverse: '#111827',       // Gray 900
+      
+      // Border colors
+      border: '#374151',           // Gray 700
+      borderHover: '#4B5563',      // Gray 600
+      borderFocus: '#3B82F6',      // Blue 500
+      borderError: '#EF4444',      // Red 500
+      borderSuccess: '#10B981',    // Emerald 500
+      
+      // State colors (same as light)
+      error: '#EF4444',
+      errorHover: '#F87171',
+      success: '#10B981',
+      successHover: '#34D399',
+      warning: '#F59E0B',
+      warningHover: '#FBBF24',
+      info: '#3B82F6',
+      infoHover: '#60A5FA',
+    },
+    
+    isDark: true,
+  };
+};
+
+/**
+ * Create theme with custom typography scale
+ */
+export const createThemeWithTypographyScale = (
+  baseTheme: Theme,
+  scale: 'small' | 'medium' | 'large'
+): Theme => {
+  if (!baseTheme.advancedTypography) {
+    return baseTheme;
+  }
+
+  return {
+    ...baseTheme,
+    advancedTypography: {
+      ...baseTheme.advancedTypography,
+      scale,
+      customScale: typographyScales[scale],
+    },
+    updatedAt: new Date(),
+  };
+};
+
+/**
+ * Create theme with custom font families
+ */
+export const createThemeWithFonts = (
+  baseTheme: Theme,
+  fonts: {
+    primary?: typeof defaultFonts.primary;
+    secondary?: typeof defaultFonts.secondary;
+    mono?: typeof defaultFonts.mono;
+  }
+): Theme => {
+  if (!baseTheme.advancedTypography) {
+    return baseTheme;
+  }
+
+  return {
+    ...baseTheme,
+    advancedTypography: {
+      ...baseTheme.advancedTypography,
+      primary: fonts.primary || baseTheme.advancedTypography.primary,
+      secondary: fonts.secondary || baseTheme.advancedTypography.secondary,
+      mono: fonts.mono || baseTheme.advancedTypography.mono,
+    },
+    // Update basic typography for backward compatibility
+    typography: {
+      ...baseTheme.typography,
+      fontFamily: fonts.primary ? 
+        [fonts.primary.family, ...fonts.primary.fallbacks].join(', ') : 
+        baseTheme.typography.fontFamily,
+      fontFamilyMono: fonts.mono ? 
+        [fonts.mono.family, ...fonts.mono.fallbacks].join(', ') : 
+        baseTheme.typography.fontFamilyMono,
+    },
+    updatedAt: new Date(),
+  };
+};
+
+/**
+ * Theme presets with different typography configurations
+ */
+export const themePresets = {
+  // Default themes
+  default: createDefaultTheme(),
+  dark: createDarkTheme(),
   
-  colors: {
-    // Primary colors (same as light)
-    primary: '#3B82F6',
-    primaryHover: '#2563EB',
-    primaryActive: '#1D4ED8',
-    primaryDisabled: '#1E3A8A',
-    
-    // Secondary colors
-    secondary: '#9CA3AF',
-    secondaryHover: '#D1D5DB',
-    secondaryActive: '#F3F4F6',
-    
-    // Background colors
-    background: '#111827',        // Gray 900
-    surface: '#1F2937',          // Gray 800
-    surfaceElevated: '#374151',   // Gray 700
-    overlay: 'rgba(0, 0, 0, 0.8)', // Darker overlay
-    
-    // Text colors
-    textPrimary: '#F9FAFB',       // Gray 50
-    textSecondary: '#D1D5DB',     // Gray 300
-    textMuted: '#9CA3AF',         // Gray 400
-    textInverse: '#111827',       // Gray 900
-    
-    // Border colors
-    border: '#374151',           // Gray 700
-    borderHover: '#4B5563',      // Gray 600
-    borderFocus: '#3B82F6',      // Blue 500
-    borderError: '#EF4444',      // Red 500
-    borderSuccess: '#10B981',    // Emerald 500
-    
-    // State colors (same as light)
-    error: '#EF4444',
-    errorHover: '#F87171',
-    success: '#10B981',
-    successHover: '#34D399',
-    warning: '#F59E0B',
-    warningHover: '#FBBF24',
-    info: '#3B82F6',
-    infoHover: '#60A5FA',
+  // Typography scale variants
+  defaultSmall: createThemeWithTypographyScale(createDefaultTheme(), 'small'),
+  defaultLarge: createThemeWithTypographyScale(createDefaultTheme(), 'large'),
+  darkSmall: createThemeWithTypographyScale(createDarkTheme(), 'small'),
+  darkLarge: createThemeWithTypographyScale(createDarkTheme(), 'large'),
+  
+  // High contrast themes for accessibility
+  highContrast: (): Theme => {
+    const theme = createDefaultTheme();
+    return {
+      ...theme,
+      id: 'high-contrast',
+      name: 'High Contrast',
+      description: 'High contrast theme for accessibility',
+      colors: {
+        ...theme.colors,
+        primary: '#000000',
+        primaryHover: '#333333',
+        primaryActive: '#000000',
+        background: '#FFFFFF',
+        textPrimary: '#000000',
+        border: '#000000',
+        borderFocus: '#000000',
+      },
+      advancedTypography: theme.advancedTypography ? {
+        ...theme.advancedTypography,
+        accessibility: {
+          ...theme.advancedTypography.accessibility,
+          contrastRatio: 7.0, // WCAG AAA level
+          enforceMinSize: true,
+          minBodySize: 18, // Larger minimum for high contrast
+        },
+      } : undefined,
+    };
   },
   
-  isDark: true,
-});
+  // Performance optimized theme (system fonts only)
+  performance: (): Theme => {
+    const theme = createDefaultTheme();
+    
+    return createThemeWithFonts(theme, {
+      primary: systemFonts[0], // System UI
+      secondary: systemFonts[0], // System UI
+      mono: systemFonts[4], // Courier New
+    });
+  },
+};
 
 export const defaultTheme = createDefaultTheme();
 export const darkTheme = createDarkTheme();

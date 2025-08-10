@@ -1,4 +1,6 @@
-// src/components/public-form/themes/types.ts
+// src/components/public-form/themes/types.ts - Fixed Typography Action Type
+
+import { TypographyConfig } from './typography/types';
 
 export interface ThemeColors {
     // Primary colors
@@ -148,13 +150,14 @@ export interface ThemeColors {
     overlay: number;
   }
   
-  // Complete theme configuration
+  // Complete theme configuration with integrated typography
   export interface Theme {
     id: string;
     name: string;
     description?: string;
     colors: ThemeColors;
     typography: ThemeTypography;
+    advancedTypography?: TypographyConfig; // Optional advanced typography configuration
     spacing: ThemeSpacing;
     borderRadius: ThemeBorderRadius;
     shadows: ThemeShadows;
@@ -167,7 +170,7 @@ export interface ThemeColors {
     updatedAt: Date;
   }
   
-  // Theme state management
+  // Theme state management with typography
   export interface ThemeState {
     currentTheme: Theme;
     isLoading: boolean;
@@ -175,19 +178,25 @@ export interface ThemeColors {
     previewMode: boolean;
     previewTheme: Theme | null;
     hasUnsavedChanges: boolean;
+    // Typography-specific state
+    typographyLoading: boolean;
+    fontLoadingStates: Map<string, 'loading' | 'loaded' | 'error'>;
   }
   
   export type ThemeAction =
     | { type: 'SET_THEME'; payload: Theme }
     | { type: 'UPDATE_THEME'; payload: Partial<Theme> }
+    | { type: 'UPDATE_TYPOGRAPHY'; payload: Partial<TypographyConfig> } // Fixed: payload is Partial<TypographyConfig>
+    | { type: 'SET_FONT_LOADING_STATE'; payload: { fontFamily: string; state: 'loading' | 'loaded' | 'error' } }
     | { type: 'SET_PREVIEW_MODE'; payload: boolean }
     | { type: 'SET_PREVIEW_THEME'; payload: Theme | null }
     | { type: 'SET_LOADING'; payload: boolean }
+    | { type: 'SET_TYPOGRAPHY_LOADING'; payload: boolean }
     | { type: 'SET_ERROR'; payload: string | null }
     | { type: 'RESET_THEME' }
     | { type: 'SAVE_THEME' };
   
-  // CSS Custom Property mapping
+  // Extended CSS Custom Properties to include typography
   export interface CSSCustomProperties {
     // Colors
     '--form-color-primary': string;
@@ -219,7 +228,7 @@ export interface ThemeColors {
     '--form-color-info': string;
     '--form-color-info-hover': string;
     
-    // Typography
+    // Basic Typography (for backward compatibility)
     '--form-font-family': string;
     '--form-font-family-mono': string;
     '--form-font-size-xs': string;
@@ -244,6 +253,73 @@ export interface ThemeColors {
     '--form-letter-spacing-normal': string;
     '--form-letter-spacing-wide': string;
     '--form-letter-spacing-wider': string;
+    
+    // Advanced Typography Properties (optional)
+    '--form-font-primary'?: string;
+    '--form-font-secondary'?: string;
+    '--form-font-mono-advanced'?: string;
+    
+    // Element-specific typography (optional)
+    '--form-font-size-form-title'?: string;
+    '--form-font-size-form-description'?: string;
+    '--form-font-size-section-title'?: string;
+    '--form-font-size-question-label'?: string;
+    '--form-font-size-question-description'?: string;
+    '--form-font-size-input-text'?: string;
+    '--form-font-size-input-placeholder'?: string;
+    '--form-font-size-button-text'?: string;
+    '--form-font-size-help-text'?: string;
+    '--form-font-size-error-text'?: string;
+    '--form-font-size-success-text'?: string;
+    '--form-font-size-caption'?: string;
+    '--form-font-size-legal'?: string;
+    
+    // Line heights for elements (optional)
+    '--form-line-height-form-title'?: string;
+    '--form-line-height-form-description'?: string;
+    '--form-line-height-section-title'?: string;
+    '--form-line-height-question-label'?: string;
+    '--form-line-height-question-description'?: string;
+    '--form-line-height-input-text'?: string;
+    '--form-line-height-button-text'?: string;
+    '--form-line-height-help-text'?: string;
+    '--form-line-height-error-text'?: string;
+    '--form-line-height-success-text'?: string;
+    '--form-line-height-caption'?: string;
+    '--form-line-height-legal'?: string;
+    
+    // Letter spacing for elements (optional)
+    '--form-letter-spacing-form-title'?: string;
+    '--form-letter-spacing-form-description'?: string;
+    '--form-letter-spacing-section-title'?: string;
+    '--form-letter-spacing-question-label'?: string;
+    '--form-letter-spacing-question-description'?: string;
+    '--form-letter-spacing-input-text'?: string;
+    '--form-letter-spacing-button-text'?: string;
+    '--form-letter-spacing-help-text'?: string;
+    '--form-letter-spacing-error-text'?: string;
+    '--form-letter-spacing-success-text'?: string;
+    '--form-letter-spacing-caption'?: string;
+    '--form-letter-spacing-legal'?: string;
+    
+    // Font weights for elements (optional)
+    '--form-font-weight-form-title'?: string;
+    '--form-font-weight-form-description'?: string;
+    '--form-font-weight-section-title'?: string;
+    '--form-font-weight-question-label'?: string;
+    '--form-font-weight-question-description'?: string;
+    '--form-font-weight-input-text'?: string;
+    '--form-font-weight-button-text'?: string;
+    '--form-font-weight-help-text'?: string;
+    '--form-font-weight-error-text'?: string;
+    '--form-font-weight-success-text'?: string;
+    '--form-font-weight-caption'?: string;
+    '--form-font-weight-legal'?: string;
+    
+    // Responsive modifiers (optional)
+    '--form-font-scale-sm'?: string;
+    '--form-font-scale-md'?: string;
+    '--form-font-scale-lg'?: string;
     
     // Spacing
     '--form-spacing-unit': string;
@@ -320,7 +396,7 @@ export interface ThemeColors {
     debounceMs: number;
   }
   
-  // Theme context value
+  // Enhanced theme context value with typography support
   export interface ThemeContextValue {
     // Current state
     state: ThemeState;
@@ -329,6 +405,10 @@ export interface ThemeColors {
     setTheme: (theme: Theme) => void;
     updateTheme: (updates: Partial<Theme>) => void;
     resetTheme: () => void;
+    
+    // Typography management
+    updateTypography: (updates: Partial<TypographyConfig>) => void;
+    resetTypography: () => void;
     
     // Preview mode
     enablePreviewMode: (theme: Theme) => void;

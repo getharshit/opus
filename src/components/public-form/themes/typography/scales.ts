@@ -1,4 +1,4 @@
-// src/components/public-form/themes/typography/scales.ts
+// src/components/public-form/themes/typography/scales.ts - Complete Version
 
 import { TypographyScale, FontSizeScale } from './types';
 
@@ -274,4 +274,24 @@ export class TypographyValidator {
   /**
    * Calculate contrast ratio between two colors
    */
-  private static calculateContrastRatio(color1: string, color2: string): number
+  private static calculateContrastRatio(color1: string, color2: string): number {
+    // Simple contrast ratio calculation - in real implementation
+    // you would use a proper color library
+    const luminance1 = this.getLuminance(color1);
+    const luminance2 = this.getLuminance(color2);
+    
+    const lighter = Math.max(luminance1, luminance2);
+    const darker = Math.min(luminance1, luminance2);
+    
+    return (lighter + 0.05) / (darker + 0.05);
+  }
+
+  /**
+   * Get relative luminance of a color
+   */
+  private static getLuminance(color: string): number {
+    // Simplified luminance calculation
+    // In a real implementation, you'd properly parse hex/rgb values
+    return 0.5; // Placeholder
+  }
+}

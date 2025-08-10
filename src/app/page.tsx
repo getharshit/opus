@@ -13,6 +13,7 @@ import {
   X,
 } from "lucide-react";
 import { useToast } from "@/components/ui/Toast";
+import TypographyTest from "@/components/TypographyTest";
 
 export default function Home() {
   const [forms, setForms] = useState<FormListItem[]>([]);
@@ -347,6 +348,7 @@ export default function Home() {
             <p>🎨 UI: Form Builder Active</p>
             <p>📊 Total Forms: {forms.length}</p>
           </div>
+          <TypographyTest />
         </div>
       </div>
     </main>
