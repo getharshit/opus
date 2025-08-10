@@ -1,7 +1,9 @@
-// src/components/public-form/themes/themeReducer.ts - Clean Version
+// src/components/public-form/themes/themeReducer.ts - Clean Version with Button & Color Support
 
 import { Theme, ThemeState, ThemeAction, ThemeValidationResult, ThemeValidationError } from './types';
 import { TypographyConfig } from './typography/types';
+import { ButtonCustomization } from './buttons/types';
+import { ColorPalette } from './colors/types';
 import { defaultTheme } from './defaultTheme';
 
 /**
@@ -20,7 +22,7 @@ export const initialThemeState: ThemeState = {
 };
 
 /**
- * Enhanced theme state reducer with typography support
+ * Enhanced theme state reducer with typography, button, and color support
  */
 export const themeReducer = (state: ThemeState, action: ThemeAction): ThemeState => {
   switch (action.type) {
@@ -73,6 +75,54 @@ export const themeReducer = (state: ThemeState, action: ThemeAction): ThemeState
               ...action.payload.mono.fallbacks
             ].join(', ') : state.currentTheme.typography.fontFamilyMono,
           } : state.currentTheme.typography,
+          updatedAt: new Date(),
+        },
+        hasUnsavedChanges: true,
+        error: null,
+      };
+
+    case 'UPDATE_BUTTON_CUSTOMIZATION':
+      return {
+        ...state,
+        currentTheme: {
+          ...state.currentTheme,
+          buttonCustomization: {
+            ...state.currentTheme.buttonCustomization,
+            ...action.payload,
+          },
+          updatedAt: new Date(),
+        },
+        hasUnsavedChanges: true,
+        error: null,
+      };
+
+    case 'UPDATE_COLOR_PALETTE':
+      return {
+        ...state,
+        currentTheme: {
+          ...state.currentTheme,
+          colorPalette: {
+            ...state.currentTheme.colorPalette,
+            ...action.payload,
+          },
+          // Also update the main colors object for backward compatibility
+          colors: {
+            ...state.currentTheme.colors,
+            ...(action.payload.primary && { primary: action.payload.primary }),
+            ...(action.payload.secondary && { secondary: action.payload.secondary }),
+            ...(action.payload.background && { background: action.payload.background }),
+            ...(action.payload.surface && { surface: action.payload.surface }),
+            ...(action.payload.textPrimary && { textPrimary: action.payload.textPrimary }),
+            ...(action.payload.textSecondary && { textSecondary: action.payload.textSecondary }),
+            ...(action.payload.textInverse && { textInverse: action.payload.textInverse }),
+            ...(action.payload.success && { success: action.payload.success }),
+            ...(action.payload.warning && { warning: action.payload.warning }),
+            ...(action.payload.error && { error: action.payload.error }),
+            ...(action.payload.info && { info: action.payload.info }),
+            ...(action.payload.tertiary && { border: action.payload.tertiary }),
+            ...(action.payload.focus && { borderFocus: action.payload.focus }),
+            ...(action.payload.overlay && { overlay: action.payload.overlay }),
+          },
           updatedAt: new Date(),
         },
         hasUnsavedChanges: true,
@@ -178,6 +228,18 @@ export const themeValidation = {
     if (theme.advancedTypography) {
       const advancedTypographyErrors = validateAdvancedTypography(theme.advancedTypography);
       errors.push(...advancedTypographyErrors);
+    }
+
+    // Validate button customization
+    if (theme.buttonCustomization) {
+      const buttonErrors = validateButtonCustomization(theme.buttonCustomization);
+      errors.push(...buttonErrors);
+    }
+
+    // Validate color palette
+    if (theme.colorPalette) {
+      const colorPaletteErrors = validateColorPalette(theme.colorPalette);
+      errors.push(...colorPaletteErrors);
     }
 
     // Validate spacing
@@ -318,6 +380,85 @@ function validateAdvancedTypography(advancedTypography: TypographyConfig): Theme
 }
 
 /**
+ * Validate button customization configuration - standalone function
+ */
+function validateButtonCustomization(buttonCustomization: ButtonCustomization): ThemeValidationError[] {
+  const errors: ThemeValidationError[] = [];
+
+  // Validate button size accessibility
+  if (buttonCustomization.minHeight < 44) {
+    errors.push({
+      field: 'buttonCustomization.minHeight',
+      message: 'Button minimum height should be at least 44px for accessibility',
+      value: buttonCustomization.minHeight,
+    });
+  }
+
+  // Validate border radius
+  if (buttonCustomization.borderRadius < 0) {
+    errors.push({
+      field: 'buttonCustomization.borderRadius',
+      message: 'Border radius must be non-negative',
+      value: buttonCustomization.borderRadius,
+    });
+  }
+
+  // Validate font weight
+  if (buttonCustomization.fontWeight < 100 || buttonCustomization.fontWeight > 900) {
+    errors.push({
+      field: 'buttonCustomization.fontWeight',
+      message: 'Font weight must be between 100-900',
+      value: buttonCustomization.fontWeight,
+    });
+  }
+
+  // Validate opacity values
+  if (buttonCustomization.hoverOpacity < 0 || buttonCustomization.hoverOpacity > 1) {
+    errors.push({
+      field: 'buttonCustomization.hoverOpacity',
+      message: 'Hover opacity must be between 0 and 1',
+      value: buttonCustomization.hoverOpacity,
+    });
+  }
+
+  return errors;
+}
+
+/**
+ * Validate color palette configuration - standalone function
+ */
+function validateColorPalette(colorPalette: ColorPalette): ThemeValidationError[] {
+  const errors: ThemeValidationError[] = [];
+  const colorRegex = /^#([A-Fa-f0-9]{6}|[A-Fa-f0-9]{3})$|^rgba?\([\d\s,./]+\)$|^hsla?\([\d\s,%/]+\)$/;
+
+  const requiredColors = [
+    'primary', 'secondary', 'tertiary',
+    'textPrimary', 'textSecondary', 'textInverse',
+    'background', 'surface', 'surfaceElevated',
+    'success', 'warning', 'error', 'info',
+    'focus', 'selection', 'overlay'
+  ];
+
+  requiredColors.forEach(colorKey => {
+    const value = colorPalette[colorKey as keyof ColorPalette];
+    if (!value) {
+      errors.push({
+        field: `colorPalette.${colorKey}`,
+        message: `Color ${colorKey} is required`,
+      });
+    } else if (!colorRegex.test(value) && !value.startsWith('rgba(') && !value.startsWith('hsla(')) {
+      errors.push({
+        field: `colorPalette.${colorKey}`,
+        message: `Invalid color format for ${colorKey}: ${value}`,
+        value,
+      });
+    }
+  });
+
+  return errors;
+}
+
+/**
  * Validate spacing values - standalone function
  */
 function validateSpacing(spacing: any): ThemeValidationError[] {
@@ -339,7 +480,7 @@ function validateSpacing(spacing: any): ThemeValidationError[] {
   });
 
   return errors;
-};
+}
 
 /**
  * Enhanced theme persistence utilities with typography support
@@ -494,7 +635,7 @@ export const themePersistence = {
 };
 
 /**
- * Enhanced theme action creators with typography support
+ * Enhanced theme action creators with typography, button, and color support
  */
 export const themeActions = {
   setTheme: (theme: Theme): ThemeAction => ({
@@ -518,6 +659,16 @@ export const themeActions = {
       payload: updates,
     };
   },
+
+  updateButtonCustomization: (updates: Partial<ButtonCustomization>): ThemeAction => ({
+    type: 'UPDATE_BUTTON_CUSTOMIZATION',
+    payload: updates,
+  }),
+
+  updateColorPalette: (updates: Partial<ColorPalette>): ThemeAction => ({
+    type: 'UPDATE_COLOR_PALETTE',
+    payload: updates,
+  }),
 
   setFontLoadingState: (fontFamily: string, state: 'loading' | 'loaded' | 'error'): ThemeAction => ({
     type: 'SET_FONT_LOADING_STATE',

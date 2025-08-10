@@ -1,6 +1,8 @@
-// src/components/public-form/themes/types.ts - Fixed Typography Action Type
+// src/components/public-form/themes/types.ts - Extended with Button Customization
 
 import { TypographyConfig } from './typography/types';
+import { ButtonCustomization } from './buttons/types';
+import { ColorPalette } from './colors/types';
 
 export interface ThemeColors {
     // Primary colors
@@ -42,9 +44,9 @@ export interface ThemeColors {
     warningHover: string;
     info: string;
     infoHover: string;
-  }
-  
-  export interface ThemeTypography {
+}
+
+export interface ThemeTypography {
     // Font families
     fontFamily: string;
     fontFamilyMono: string;
@@ -78,9 +80,9 @@ export interface ThemeColors {
     letterSpacingNormal: number;
     letterSpacingWide: number;
     letterSpacingWider: number;
-  }
-  
-  export interface ThemeSpacing {
+}
+
+export interface ThemeSpacing {
     // Base spacing unit (in rem)
     unit: number;
     
@@ -95,18 +97,18 @@ export interface ThemeColors {
     '4xl': number;
     '5xl': number;
     '6xl': number;
-  }
-  
-  export interface ThemeBorderRadius {
+}
+
+export interface ThemeBorderRadius {
     none: number;
     sm: number;
     md: number;
     lg: number;
     xl: number;
     full: number;
-  }
-  
-  export interface ThemeShadows {
+}
+
+export interface ThemeShadows {
     none: string;
     sm: string;
     md: string;
@@ -114,9 +116,9 @@ export interface ThemeColors {
     xl: string;
     '2xl': string;
     inner: string;
-  }
-  
-  export interface ThemeTransitions {
+}
+
+export interface ThemeTransitions {
     // Duration (in ms)
     durationFast: number;
     durationNormal: number;
@@ -129,17 +131,17 @@ export interface ThemeColors {
     easingEaseInOut: string;
     easingBounce: string;
     easingElastic: string;
-  }
-  
-  export interface ThemeBreakpoints {
+}
+
+export interface ThemeBreakpoints {
     sm: string;
     md: string;
     lg: string;
     xl: string;
     '2xl': string;
-  }
-  
-  export interface ThemeZIndex {
+}
+
+export interface ThemeZIndex {
     auto: string;
     base: number;
     dropdown: number;
@@ -148,16 +150,18 @@ export interface ThemeColors {
     tooltip: number;
     toast: number;
     overlay: number;
-  }
-  
-  // Complete theme configuration with integrated typography
-  export interface Theme {
+}
+
+// Extended theme configuration with button customization
+export interface Theme {
     id: string;
     name: string;
     description?: string;
     colors: ThemeColors;
     typography: ThemeTypography;
     advancedTypography?: TypographyConfig; // Optional advanced typography configuration
+    buttonCustomization?: ButtonCustomization; // NEW: Button customization
+    colorPalette?: ColorPalette; // NEW: Extended color palette
     spacing: ThemeSpacing;
     borderRadius: ThemeBorderRadius;
     shadows: ThemeShadows;
@@ -168,10 +172,10 @@ export interface ThemeColors {
     isCustom: boolean;
     createdAt: Date;
     updatedAt: Date;
-  }
-  
-  // Theme state management with typography
-  export interface ThemeState {
+}
+
+// Theme state management with typography and button customization
+export interface ThemeState {
     currentTheme: Theme;
     isLoading: boolean;
     error: string | null;
@@ -181,12 +185,14 @@ export interface ThemeColors {
     // Typography-specific state
     typographyLoading: boolean;
     fontLoadingStates: Map<string, 'loading' | 'loaded' | 'error'>;
-  }
-  
-  export type ThemeAction =
+}
+
+export type ThemeAction =
     | { type: 'SET_THEME'; payload: Theme }
     | { type: 'UPDATE_THEME'; payload: Partial<Theme> }
-    | { type: 'UPDATE_TYPOGRAPHY'; payload: Partial<TypographyConfig> } // Fixed: payload is Partial<TypographyConfig>
+    | { type: 'UPDATE_TYPOGRAPHY'; payload: Partial<TypographyConfig> }
+    | { type: 'UPDATE_BUTTON_CUSTOMIZATION'; payload: Partial<ButtonCustomization> } // NEW
+    | { type: 'UPDATE_COLOR_PALETTE'; payload: Partial<ColorPalette> } // NEW
     | { type: 'SET_FONT_LOADING_STATE'; payload: { fontFamily: string; state: 'loading' | 'loaded' | 'error' } }
     | { type: 'SET_PREVIEW_MODE'; payload: boolean }
     | { type: 'SET_PREVIEW_THEME'; payload: Theme | null }
@@ -195,9 +201,9 @@ export interface ThemeColors {
     | { type: 'SET_ERROR'; payload: string | null }
     | { type: 'RESET_THEME' }
     | { type: 'SAVE_THEME' };
-  
-  // Extended CSS Custom Properties to include typography
-  export interface CSSCustomProperties {
+
+// Extended CSS Custom Properties to include button and extended color properties
+export interface CSSCustomProperties {
     // Colors
     '--form-color-primary': string;
     '--form-color-primary-hover': string;
@@ -227,6 +233,24 @@ export interface ThemeColors {
     '--form-color-warning-hover': string;
     '--form-color-info': string;
     '--form-color-info-hover': string;
+    
+    // Extended color palette properties (NEW)
+    '--form-color-tertiary'?: string;
+    '--form-color-text-tertiary'?: string;
+    '--form-color-selection'?: string;
+    
+    // Button customization properties (NEW)
+    '--form-button-border-radius'?: string;
+    '--form-button-border-width'?: string;
+    '--form-button-font-weight'?: string;
+    '--form-button-transition-duration'?: string;
+    '--form-button-hover-scale'?: string;
+    '--form-button-min-height'?: string;
+    '--form-button-focus-ring-width'?: string;
+    '--form-button-hover-opacity'?: string;
+    '--form-button-active-opacity'?: string;
+    '--form-button-disabled-opacity'?: string;
+    '--form-button-padding-multiplier'?: string;
     
     // Basic Typography (for backward compatibility)
     '--form-font-family': string;
@@ -371,33 +395,33 @@ export interface ThemeColors {
     '--form-z-index-tooltip': string;
     '--form-z-index-toast': string;
     '--form-z-index-overlay': string;
-  }
-  
-  // Theme validation schema
-  export interface ThemeValidationError {
+}
+
+// Theme validation schema
+export interface ThemeValidationError {
     field: string;
     message: string;
     value?: any;
-  }
-  
-  export interface ThemeValidationResult {
+}
+
+export interface ThemeValidationResult {
     isValid: boolean;
     errors: ThemeValidationError[];
-  }
-  
-  // Theme persistence options
-  export interface ThemePersistenceOptions {
+}
+
+// Theme persistence options
+export interface ThemePersistenceOptions {
     key: string;
     storage: 'localStorage' | 'sessionStorage';
     serializer: {
-      stringify: (value: any) => string;
-      parse: (value: string) => any;
+        stringify: (value: any) => string;
+        parse: (value: string) => any;
     };
     debounceMs: number;
-  }
-  
-  // Enhanced theme context value with typography support
-  export interface ThemeContextValue {
+}
+
+// Enhanced theme context value with typography and button customization support
+export interface ThemeContextValue {
     // Current state
     state: ThemeState;
     
@@ -409,6 +433,14 @@ export interface ThemeColors {
     // Typography management
     updateTypography: (updates: Partial<TypographyConfig>) => void;
     resetTypography: () => void;
+    
+    // Button customization management (NEW)
+    updateButtonCustomization: (updates: Partial<ButtonCustomization>) => void;
+    resetButtonCustomization: () => void;
+    
+    // Color palette management (NEW)
+    updateColorPalette: (updates: Partial<ColorPalette>) => void;
+    resetColorPalette: () => void;
     
     // Preview mode
     enablePreviewMode: (theme: Theme) => void;
@@ -425,4 +457,4 @@ export interface ThemeColors {
     
     // Error handling
     clearError: () => void;
-  }
+}
