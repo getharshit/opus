@@ -288,7 +288,7 @@ export const LegalField: React.FC<LegalFieldProps> = ({
                       exit={{ scale: 0 }}
                       transition={{ duration: 0.15 }}
                     >
-                      <Check className="w-3 h-3 text-white" />
+                      <Check className="w-3 h-3 text-gray-900 placeholder-gray-500" />
                     </motion.div>
                   )}
                 </AnimatePresence>

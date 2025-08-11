@@ -66,6 +66,36 @@ export const useFormContext = () => {
   return context;
 };
 
+// Helper function to get default values based on field type
+const getFieldDefaultValue = (field: any) => {
+  switch (field.type) {
+    case "shortText":
+    case "longText":
+    case "email":
+    case "website":
+    case "phoneNumber":
+    case "text":
+      return "";
+    case "multipleChoice":
+    case "dropdown":
+      return "";
+    case "yesNo":
+      return false;
+    case "numberRating":
+    case "rating":
+    case "opinionScale":
+      return null;
+    case "date":
+      return "";
+    case "legal":
+      return false;
+    case "fileUpload":
+      return null;
+    default:
+      return "";
+  }
+};
+
 interface FormProviderProps {
   form: ExtendedForm;
   onSubmit: (data: Record<string, any>) => Promise<void>;
@@ -89,9 +119,22 @@ export const FormProvider: React.FC<FormProviderProps> = ({
   );
 
   // React Hook Form setup
+  // Create default values for all fields to prevent controlled/uncontrolled switch
+  const defaultValues = useMemo(() => {
+    const defaults: Record<string, any> = {};
+
+    // Add defaults for all fields in the form
+    form.fields.forEach((field) => {
+      defaults[field.id] = initialData[field.id] ?? getFieldDefaultValue(field);
+    });
+
+    return defaults;
+  }, [form.fields, initialData]);
+
+  // React Hook Form setup
   const formMethods = useForm({
     resolver: zodResolver(validationSchema),
-    defaultValues: initialData,
+    defaultValues,
     mode: "onBlur", // Validate on blur for better UX
   });
 
@@ -165,7 +208,7 @@ export const FormProvider: React.FC<FormProviderProps> = ({
 
     // Update the ref with current data for next comparison
     previousFormDataRef.current = watchedData;
-  }, [watchedData, rhfFormState.isValid, onFieldChange, validateAll]);
+  }, [rhfFormState.isValid]); // Remove watchedData and validateAll from dependencies
 
   // Step navigation functions
   const nextStep = async () => {

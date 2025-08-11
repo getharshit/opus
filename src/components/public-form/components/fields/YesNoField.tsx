@@ -152,7 +152,7 @@ export const YesNoField: React.FC<YesNoFieldProps> = ({
                 animate={{ scale: 1 }}
                 transition={{ duration: 0.15 }}
               >
-                <Check className="w-3 h-3 text-white" />
+                <Check className="w-3 h-3 text-gray-900 placeholder-gray-500" />
               </motion.div>
             )}
           </motion.div>
@@ -204,7 +204,7 @@ export const YesNoField: React.FC<YesNoFieldProps> = ({
                 animate={{ scale: 1 }}
                 transition={{ duration: 0.15 }}
               >
-                <X className="w-3 h-3 text-white" />
+                <X className="w-3 h-3 text-gray-900 placeholder-gray-500" />
               </motion.div>
             )}
           </motion.div>

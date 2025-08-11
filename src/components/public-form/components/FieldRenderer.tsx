@@ -20,6 +20,30 @@ import {
 } from "./fields";
 import { FileFieldBase } from "./base-fields";
 
+// Supported field types for validation
+const SUPPORTED_FIELD_TYPES = [
+  "shortText",
+  "longText",
+  "email",
+  "website",
+  "phoneNumber",
+  "numberRating",
+  "multipleChoice",
+  "dropdown",
+  "yesNo",
+  "opinionScale",
+  "statement",
+  "legal",
+  "startingPage",
+  "postSubmission",
+  "fileUpload",
+  "pageBreak",
+  // Legacy types
+  "text",
+  "rating",
+  "date",
+] as const;
+
 interface FieldRendererProps {
   field: ExtendedFormField;
   questionNumber?: number;
@@ -28,6 +52,51 @@ interface FieldRendererProps {
   className?: string;
 }
 
+// Dedicated Date Field Component
+const DateField: React.FC<{
+  field: ExtendedFormField;
+  questionNumber?: number;
+  showQuestionNumber?: boolean;
+  className?: string;
+}> = ({ field, questionNumber, showQuestionNumber, className }) => {
+  return (
+    <div className={`date-field ${className}`}>
+      {showQuestionNumber && questionNumber && (
+        <div className="question-number text-sm text-gray-500 mb-2">
+          Question {questionNumber}
+        </div>
+      )}
+
+      <div className="space-y-2">
+        <label
+          htmlFor={field.id}
+          className="block text-sm font-medium text-gray-700"
+        >
+          {field.label}
+          {field.required && <span className="text-red-500 ml-1">*</span>}
+        </label>
+
+        {field.description && (
+          <p className="text-sm text-gray-600">{field.description}</p>
+        )}
+
+        <input
+          type="date"
+          id={field.id}
+          name={field.id}
+          required={field.required}
+          placeholder={field.placeholder || "YYYY-MM-DD"}
+          className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+        />
+
+        {field.helpText && (
+          <p className="text-xs text-gray-500">{field.helpText}</p>
+        )}
+      </div>
+    </div>
+  );
+};
+
 export const FieldRenderer: React.FC<FieldRendererProps> = ({
   field,
   questionNumber,
@@ -35,6 +104,17 @@ export const FieldRenderer: React.FC<FieldRendererProps> = ({
   onSpecialAction,
   className = "",
 }) => {
+  // Validate field type
+  const isValidFieldType = SUPPORTED_FIELD_TYPES.includes(field.type as any);
+
+  if (!isValidFieldType) {
+    console.warn(`Unknown field type: ${field.type}`, {
+      fieldId: field.id,
+      fieldLabel: field.label,
+      supportedTypes: SUPPORTED_FIELD_TYPES,
+    });
+  }
+
   // Map field types to components
   const renderField = () => {
     switch (field.type) {
@@ -141,7 +221,7 @@ export const FieldRenderer: React.FC<FieldRendererProps> = ({
           />
         );
 
-      // Static/Content fields (NEW)
+      // Static/Content fields
       case "statement":
         return (
           <StatementField
@@ -162,7 +242,7 @@ export const FieldRenderer: React.FC<FieldRendererProps> = ({
           />
         );
 
-      // Special page fields (NEW)
+      // Special page fields
       case "startingPage":
         return (
           <StartingPageField
@@ -193,18 +273,63 @@ export const FieldRenderer: React.FC<FieldRendererProps> = ({
               <div className="w-2 h-2 bg-blue-400 rounded-full animate-pulse"></div>
               Continue to next section
             </div>
+            {field.label && (
+              <h3 className="text-lg font-semibold text-gray-800 mt-4 mb-2">
+                {field.label}
+              </h3>
+            )}
+            {field.description && (
+              <p className="text-gray-600 max-w-md mx-auto">
+                {field.description}
+              </p>
+            )}
           </div>
         );
 
+      // Unknown field types with fallback
       default:
+        console.error(`Unknown field type: ${field.type}`, {
+          fieldId: field.id,
+          fieldLabel: field.label,
+          receivedType: field.type,
+          supportedTypes: SUPPORTED_FIELD_TYPES,
+        });
+
         return (
-          <div className="p-4 border border-red-300 bg-red-50 rounded-lg">
-            <p className="text-red-700 text-sm">
-              Unknown field type: <code>{field.type}</code>
-            </p>
-            <p className="text-red-600 text-xs mt-1">
-              This field type is not yet implemented.
-            </p>
+          <div className="unknown-field-fallback">
+            {/* Error notification */}
+            <div className="p-4 border border-red-300 bg-red-50 rounded-lg mb-4">
+              <div className="flex items-start gap-2">
+                <div className="w-5 h-5 text-red-500 mt-0.5">⚠️</div>
+                <div>
+                  <p className="text-red-700 text-sm font-medium">
+                    Unknown field type:{" "}
+                    <code className="bg-red-100 px-1 rounded">
+                      {field.type}
+                    </code>
+                  </p>
+                  <p className="text-red-600 text-xs mt-1">
+                    Field ID: <code>{field.id}</code> | Falling back to text
+                    input for data collection
+                  </p>
+                </div>
+              </div>
+            </div>
+
+            {/* Fallback to text input */}
+            <ShortTextField
+              field={{
+                ...field,
+                type: "shortText",
+                label: `${field.label} (Unknown Type: ${field.type})`,
+                description: field.description
+                  ? `${field.description}\n\n⚠️ This field had an unknown type and is displayed as text input.`
+                  : `⚠️ This field had an unknown type (${field.type}) and is displayed as text input.`,
+              }}
+              questionNumber={questionNumber}
+              showQuestionNumber={showQuestionNumber}
+              className={`${className} fallback-field`}
+            />
           </div>
         );
     }
@@ -215,6 +340,10 @@ export const FieldRenderer: React.FC<FieldRendererProps> = ({
       className="field-renderer"
       data-field-type={field.type}
       data-field-id={field.id}
+      data-required={field.required}
+      data-has-options={!!field.options?.length}
+      data-is-valid-type={isValidFieldType}
+      data-question-number={questionNumber}
     >
       {renderField()}
     </div>

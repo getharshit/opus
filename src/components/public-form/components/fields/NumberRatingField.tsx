@@ -160,7 +160,7 @@ export const NumberRatingField: React.FC<NumberRatingFieldProps> = ({
                         exit={{ scale: 0 }}
                         className="absolute -top-1 -right-1 w-4 h-4 bg-green-500 rounded-full flex items-center justify-center"
                       >
-                        <Star className="w-2 h-2 text-white fill-current" />
+                        <Star className="w-2 h-2 text-gray-900 placeholder-gray-500 fill-current" />
                       </motion.div>
                     )}
                   </AnimatePresence>
