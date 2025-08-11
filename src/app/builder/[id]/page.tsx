@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { useParams } from "next/navigation";
-import { Form, FormField } from "@/types/form";
+import { Form, FormField, ExtendedFieldType } from "@/types/form";
 import FormBuilderSidebar from "@/components/form-builder/FormBuilderSidebar";
 import QuestionEditor from "@/components/form-builder/QuestionEditor";
 import LivePreview from "@/components/form-builder/LivePreview";
@@ -60,7 +60,7 @@ export default function FormBuilderPage() {
     }
   };
 
-  const addField = (type: FormField["type"]) => {
+  const addField = (type: ExtendedFieldType) => {
     if (!form) return;
 
     const newField: FormField = {
@@ -68,12 +68,26 @@ export default function FormBuilderPage() {
       type,
       label: getDefaultLabel(type),
       required: false,
-      ...(type === "multipleChoice" || type === "dropdown"
-        ? { options: ["Option 1"] }
-        : {}),
-      ...(type === "rating" ? { maxRating: 5 } : {}),
-    };
 
+      // Add field-specific defaults
+      ...(type === "multipleChoice" || type === "dropdown"
+        ? { options: ["Option 1", "Option 2", "Option 3"] }
+        : {}),
+      ...(type === "numberRating" ? { minRating: 1, maxRating: 5 } : {}),
+      ...(type === "opinionScale" ? { minRating: 1, maxRating: 10 } : {}),
+      ...(type === "shortText" || type === "longText"
+        ? { placeholder: "Type your answer here..." }
+        : {}),
+      ...(type === "email" ? { placeholder: "name@example.com" } : {}),
+      ...(type === "website" ? { placeholder: "https://example.com" } : {}),
+      ...(type === "phoneNumber" ? { placeholder: "(555) 123-4567" } : {}),
+      ...(type === "fileUpload"
+        ? { acceptedFileTypes: [".pdf", ".jpg", ".png"], maxFileSize: 10 }
+        : {}),
+      ...(type === "longText" ? { maxLength: 500 } : {}),
+      ...(type === "shortText" ? { maxLength: 100 } : {}),
+    };
+    console.log(`Creating new field: ${type}`, newField);
     updateForm({
       fields: [...form.fields, newField],
     });
@@ -325,18 +339,48 @@ export default function FormBuilderPage() {
   );
 }
 
-function getDefaultLabel(type: FormField["type"]): string {
+function getDefaultLabel(type: ExtendedFieldType): string {
   switch (type) {
-    case "text":
-      return "Short Answer";
+    // Text Input Fields
+    case "shortText":
+      return "Short Text Question";
+    case "longText":
+      return "Long Text Question";
+    case "email":
+      return "Email Address";
+    case "website":
+      return "Website URL";
+    case "phoneNumber":
+      return "Phone Number";
+
+    // Choice Fields
     case "multipleChoice":
       return "Multiple Choice Question";
     case "dropdown":
       return "Dropdown Question";
-    case "rating":
+    case "yesNo":
+      return "Yes/No Question";
+    case "numberRating":
       return "Rating Question";
-    case "date":
-      return "Date Question";
+    case "opinionScale":
+      return "Opinion Scale Question";
+
+    // Special Fields
+    case "statement":
+      return "Statement";
+    case "legal":
+      return "Terms and Conditions";
+    case "fileUpload":
+      return "File Upload";
+
+    // Form Structure
+    case "pageBreak":
+      return "Page Break";
+    case "startingPage":
+      return "Welcome to our form";
+    case "postSubmission":
+      return "Thank you for your submission";
+
     default:
       return "Question";
   }

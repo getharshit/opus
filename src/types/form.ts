@@ -402,3 +402,6 @@ export function migrateLegacyField(legacyField: LegacyFormField): FormField {
     validationRules: legacyField.type === 'date' ? { pattern: '^\\d{4}-\\d{2}-\\d{2}$' } : undefined
   };
 }
+
+export type { ExtendedFieldType };
+export type FormBuilderFieldType = ExtendedFieldType;

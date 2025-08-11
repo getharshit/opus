@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { FormField } from "@/types/form";
 import { GripVertical, Trash2, Plus, X } from "lucide-react";
+import { FormField, ExtendedFieldType } from "@/types/form";
 
 interface QuestionTileProps {
   field: FormField;
@@ -106,15 +107,37 @@ export default function QuestionTile({
             <select
               value={field.type}
               onChange={(e) =>
-                onUpdate({ type: e.target.value as FormField["type"] })
+                onUpdate({ type: e.target.value as ExtendedFieldType })
               }
               className="text-sm border border-gray-300 rounded px-2 py-1"
             >
-              <option value="text">Short Answer</option>
-              <option value="multipleChoice">Multiple Choice</option>
-              <option value="dropdown">Dropdown</option>
-              <option value="rating">Rating</option>
-              <option value="date">Date</option>
+              <optgroup label="Text Fields">
+                <option value="shortText">Short Text</option>
+                <option value="longText">Long Text</option>
+                <option value="email">Email</option>
+                <option value="website">Website</option>
+                <option value="phoneNumber">Phone Number</option>
+              </optgroup>
+
+              <optgroup label="Choice Fields">
+                <option value="multipleChoice">Multiple Choice</option>
+                <option value="dropdown">Dropdown</option>
+                <option value="yesNo">Yes/No</option>
+                <option value="numberRating">Number Rating</option>
+                <option value="opinionScale">Opinion Scale</option>
+              </optgroup>
+
+              <optgroup label="Special Fields">
+                <option value="statement">Statement</option>
+                <option value="legal">Legal</option>
+                <option value="fileUpload">File Upload</option>
+              </optgroup>
+
+              <optgroup label="Form Structure">
+                <option value="pageBreak">Page Break</option>
+                <option value="startingPage">Welcome Screen</option>
+                <option value="postSubmission">Thank You Page</option>
+              </optgroup>
             </select>
           </div>
         </div>
@@ -124,16 +147,72 @@ export default function QuestionTile({
 
   function renderFieldPreview() {
     switch (field.type) {
-      case "text":
+      // Text Input Fields
+      case "shortText":
+        return (
+          <div className="relative">
+            <input
+              type="text"
+              placeholder={field.placeholder || "Short text answer"}
+              className="w-full px-3 py-2 border-b border-gray-300 bg-transparent focus:border-blue-500 outline-none"
+              disabled
+            />
+            {field.maxLength && (
+              <div className="text-xs text-gray-500 mt-1">
+                Max {field.maxLength} characters
+              </div>
+            )}
+          </div>
+        );
+
+      case "longText":
+        return (
+          <div className="relative">
+            <textarea
+              placeholder={field.placeholder || "Long text answer"}
+              className="w-full px-3 py-2 border border-gray-300 rounded bg-transparent focus:border-blue-500 outline-none resize-none"
+              rows={3}
+              disabled
+            />
+            {field.maxLength && (
+              <div className="text-xs text-gray-500 mt-1">
+                Max {field.maxLength} characters
+              </div>
+            )}
+          </div>
+        );
+
+      case "email":
         return (
           <input
-            type="text"
-            placeholder={field.placeholder || "Your answer"}
+            type="email"
+            placeholder={field.placeholder || "name@example.com"}
             className="w-full px-3 py-2 border-b border-gray-300 bg-transparent focus:border-blue-500 outline-none"
             disabled
           />
         );
 
+      case "website":
+        return (
+          <input
+            type="url"
+            placeholder={field.placeholder || "https://example.com"}
+            className="w-full px-3 py-2 border-b border-gray-300 bg-transparent focus:border-blue-500 outline-none"
+            disabled
+          />
+        );
+
+      case "phoneNumber":
+        return (
+          <input
+            type="tel"
+            placeholder={field.placeholder || "(555) 123-4567"}
+            className="w-full px-3 py-2 border-b border-gray-300 bg-transparent focus:border-blue-500 outline-none"
+            disabled
+          />
+        );
+
+      // Choice Fields
       case "multipleChoice":
         return (
           <div className="space-y-2">
@@ -195,7 +274,21 @@ export default function QuestionTile({
           </select>
         );
 
-      case "rating":
+      case "yesNo":
+        return (
+          <div className="flex gap-4">
+            <label className="flex items-center gap-2">
+              <input type="radio" name={field.id} disabled />
+              <span>Yes</span>
+            </label>
+            <label className="flex items-center gap-2">
+              <input type="radio" name={field.id} disabled />
+              <span>No</span>
+            </label>
+          </div>
+        );
+
+      case "numberRating":
         return (
           <div className="flex gap-1">
             {Array.from({ length: field.maxRating || 5 }).map((_, i) => (
@@ -206,20 +299,93 @@ export default function QuestionTile({
                 {i + 1}
               </div>
             ))}
+            <span className="ml-2 text-sm text-gray-500">
+              {field.minRating || 1} to {field.maxRating || 5}
+            </span>
           </div>
         );
 
-      case "date":
+      case "opinionScale":
         return (
-          <input
-            type="date"
-            className="px-3 py-2 border border-gray-300 rounded"
-            disabled
-          />
+          <div className="flex items-center gap-2">
+            <span className="text-xs text-gray-500">1</span>
+            <div className="flex gap-1">
+              {Array.from({ length: 10 }).map((_, i) => (
+                <div
+                  key={i}
+                  className="w-4 h-4 border border-gray-300 rounded-sm"
+                />
+              ))}
+            </div>
+            <span className="text-xs text-gray-500">10</span>
+          </div>
+        );
+
+      // Special Fields
+      case "statement":
+        return (
+          <div className="bg-blue-50 border border-blue-200 rounded p-3">
+            <div className="text-sm text-blue-800">
+              📝 Statement content will be displayed here
+            </div>
+          </div>
+        );
+
+      case "legal":
+        return (
+          <div className="border border-gray-300 rounded p-3 bg-gray-50">
+            <div className="text-xs text-gray-600 mb-2">
+              Terms and Conditions
+            </div>
+            <label className="flex items-start gap-2">
+              <input type="checkbox" className="mt-1" disabled />
+              <span className="text-sm">I agree to the terms</span>
+            </label>
+          </div>
+        );
+
+      case "fileUpload":
+        return (
+          <div className="border-2 border-dashed border-gray-300 rounded p-4 text-center">
+            <div className="text-sm text-gray-600">
+              📎 Drop files here or click to upload
+            </div>
+            {field.acceptedFileTypes && (
+              <div className="text-xs text-gray-500 mt-1">
+                Accepted: {field.acceptedFileTypes.join(", ")}
+              </div>
+            )}
+          </div>
+        );
+
+      // Form Structure
+      case "pageBreak":
+        return (
+          <div className="border-t-2 border-gray-400 py-2 text-center">
+            <div className="text-sm text-gray-600">--- Page Break ---</div>
+          </div>
+        );
+
+      case "startingPage":
+        return (
+          <div className="bg-green-50 border border-green-200 rounded p-3 text-center">
+            <div className="text-sm text-green-800">🎉 Welcome Screen</div>
+          </div>
+        );
+
+      case "postSubmission":
+        return (
+          <div className="bg-purple-50 border border-purple-200 rounded p-3 text-center">
+            <div className="text-sm text-purple-800">✨ Thank You Page</div>
+          </div>
         );
 
       default:
-        return null;
+        return (
+          <div className="text-sm text-gray-500 italic">
+            Preview not available for {field.type}
+          </div>
+        );
     }
   }
 }
