@@ -241,6 +241,21 @@ export interface FormCustomization {
     md?: string;
     lg?: string;
   };
+
+  // ADD THESE TWO PROPERTIES:
+  maxWidth?: number;
+  alignment?: 'left' | 'center' | 'right';
+  buttonStyle?: 'filled' | 'outlined' | 'ghost';
+  buttonSize?: 'sm' | 'md' | 'lg';
+  logoPosition?: 'top-left' | 'top-center' | 'top-right';
+  logoSize?: number;
+
+  animations?: {
+    intensity?: 'none' | 'subtle' | 'moderate' | 'playful';
+    enableAnimations?: boolean;
+    respectReducedMotion?: boolean;
+  };
+  
 }
 
 /**
@@ -403,5 +418,4 @@ export function migrateLegacyField(legacyField: LegacyFormField): FormField {
   };
 }
 
-export type { ExtendedFieldType };
 

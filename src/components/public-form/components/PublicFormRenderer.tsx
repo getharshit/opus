@@ -8,6 +8,10 @@ import { FormQuestion } from "./FormQuestion";
 import { FormNavigation } from "./FormNavigation";
 import { SingleColumnLayout, MultiStepLayout } from "../layouts";
 import { useFormContext } from "../providers/FormProvider";
+import {
+  hasMultiStepLayout,
+  groupFieldsByPageBreaks,
+} from "../utils/stepDetection";
 
 // Internal component that has access to FormContext
 const FormContent: React.FC = () => {
@@ -25,7 +29,8 @@ const FormContent: React.FC = () => {
   // Initialize animation system with form customization
   useAnimationFromCustomization(form.customization);
 
-  const isMultiStep = totalSteps > 1;
+  // Simple detection: check if form has pageBreak fields
+  const isMultiStep = hasMultiStepLayout(form.fields);
 
   // For single-column layout, we don't need manual navigation controls
   // The layout handles everything internally

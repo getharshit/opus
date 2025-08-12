@@ -5,13 +5,14 @@ import { useParams } from "next/navigation";
 import { Form, FormField, ExtendedFieldType } from "@/types/form";
 import FormBuilderSidebar from "@/components/form-builder/FormBuilderSidebar";
 import QuestionEditor from "@/components/form-builder/QuestionEditor";
-import LivePreview from "@/components/form-builder/LivePreview";
+import { LiveFormPreview } from "@/components/form-builder/design/LiveFormPreview";
 import FormSettings from "@/components/form-builder/FormSettings";
 import LoadingState from "@/components/ui/LoadingState";
 import ShareModal from "@/components/sharing/ShareModal";
 import FormBuilderStepper, {
   BuilderStep,
 } from "@/components/form-builder/FormBuilderStepper";
+import { DesignStep } from "@/components/form-builder/design/DesignStep";
 
 export default function FormBuilderPage() {
   const params = useParams();
@@ -169,7 +170,15 @@ export default function FormBuilderPage() {
             {showPreview && (
               <div className="col-span-4">
                 <div className="sticky top-24">
-                  {form && <LivePreview form={form} />}
+                  {form && (
+                    <LiveFormPreview
+                      form={form}
+                      localColors={form.customization?.colors || {}}
+                      localTypography={form.customization?.typography || {}}
+                      localLayout={form.customization || {}}
+                      localAnimations={form.customization?.animations || {}}
+                    />
+                  )}
                 </div>
               </div>
             )}
@@ -177,24 +186,7 @@ export default function FormBuilderPage() {
         );
 
       case "design":
-        return (
-          <div className="max-w-4xl mx-auto">
-            <div className="text-center py-16">
-              <div className="bg-white rounded-lg shadow-md p-8">
-                <h2 className="text-2xl font-semibold text-gray-900 mb-4">
-                  🎨 Design Customization
-                </h2>
-                <p className="text-gray-600 mb-6">
-                  Customize your form appearance, themes, and branding.
-                </p>
-                <div className="text-sm text-blue-600 bg-blue-50 p-4 rounded-lg">
-                  Coming soon: Advanced theme customization, custom CSS, brand
-                  colors, and more!
-                </div>
-              </div>
-            </div>
-          </div>
-        );
+        return form ? <DesignStep form={form} onUpdate={updateForm} /> : null;
 
       case "integrate":
         return (

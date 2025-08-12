@@ -42,15 +42,14 @@ export const LiveFormPreview: React.FC<LiveFormPreviewProps> = ({
       return { transition: "none" };
     }
 
-    const durations: Record<string, string> = {
+    const durations = {
       subtle: "150ms",
       moderate: "300ms",
       playful: "500ms",
-    };
+    } as const;
 
-    // Safely get the intensity with fallback
-    const intensity = localAnimations?.intensity || "moderate";
-    const duration = durations[intensity] || durations["moderate"];
+    const intensity = (localAnimations?.intensity ||
+      "moderate") as keyof typeof durations;
 
     const easing =
       intensity === "playful"
@@ -58,7 +57,7 @@ export const LiveFormPreview: React.FC<LiveFormPreviewProps> = ({
         : "ease-in-out";
 
     return {
-      transition: `all ${duration} ${easing}`,
+      transition: `all ${durations[intensity]} ${easing}`,
     };
   };
 

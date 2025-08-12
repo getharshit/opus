@@ -11,8 +11,8 @@ import {
   AnimatedButton,
   AnimatedProgressIndicator,
 } from "../animation/components";
-import { useStepGrouping } from "../hooks/useStepGrouping";
 import { useMultiStepProgress } from "../hooks/useMultiStepProgress";
+import { groupFieldsByPageBreaks } from "../utils/stepDetection";
 import {
   ChevronLeft,
   ChevronRight,
@@ -35,19 +35,31 @@ export const MultiStepLayout: React.FC<MultiStepLayoutProps> = ({
   state,
   progressConfig,
 }) => {
-  const { formMethods, formState, submitForm, validateField } =
-    useFormContext();
+  const {
+    formMethods,
+    formState,
+    submitForm,
+    validateField,
+    currentStep: contextCurrentStep,
+    totalSteps: contextTotalSteps,
+    currentStepFields: contextCurrentStepFields,
+  } = useFormContext();
 
   const [direction, setDirection] = useState<"forward" | "backward">("forward");
   const [isValidating, setIsValidating] = useState(false);
   const [showExitIntent, setShowExitIntent] = useState(false);
   const [showProgressRestored, setShowProgressRestored] = useState(false);
 
-  // Get step grouping (removed formData parameter as it's not needed)
-  const { steps, totalSteps } = useStepGrouping({
-    fields: form.fields,
-    fieldGroups: form.fieldGroups,
-  });
+  // Get step configuration from pageBreak grouping for display purposes
+  const stepConfiguration = groupFieldsByPageBreaks(form.fields);
+  const steps = stepConfiguration.steps.map((step, index) => ({
+    id: `step-${index}`,
+    title: step.title,
+    description: `Complete this section of the form`,
+    fields: step.fields,
+  }));
+
+  const totalSteps = contextTotalSteps;
 
   // Multi-step progress management
   const {
@@ -78,7 +90,14 @@ export const MultiStepLayout: React.FC<MultiStepLayoutProps> = ({
     },
   });
 
-  const currentStep = steps[currentStepIndex];
+  // Use the current step from context, but fall back to internal state for progress hook
+  const currentStep = steps[currentStepIndex] || {
+    id: `step-${currentStepIndex}`,
+    title: `Step ${currentStepIndex + 1}`,
+    description: "Complete this section",
+    fields: contextCurrentStepFields,
+  };
+
   const isFirstStep = currentStepIndex === 0;
   const isLastStep = currentStepIndex === totalSteps - 1;
 
@@ -112,7 +131,7 @@ export const MultiStepLayout: React.FC<MultiStepLayoutProps> = ({
     isValid: boolean;
     errors?: string[];
   }> => {
-    if (!currentStep) return { isValid: false };
+    if (!currentStep || !currentStep.fields) return { isValid: false };
 
     setIsValidating(true);
     const errors: string[] = [];

@@ -20,6 +20,10 @@ import {
   FieldGroup,
 } from "../types";
 import { useFormValidation } from "../hooks/useFormValidation";
+import {
+  hasMultiStepLayout,
+  groupFieldsByPageBreaks,
+} from "../utils/stepDetection";
 
 interface FormContextValue {
   // Form configuration
@@ -123,10 +127,13 @@ export const FormProvider: React.FC<FormProviderProps> = ({
   const defaultValues = useMemo(() => {
     const defaults: Record<string, any> = {};
 
-    // Add defaults for all fields in the form
-    form.fields.forEach((field) => {
-      defaults[field.id] = initialData[field.id] ?? getFieldDefaultValue(field);
-    });
+    // Add defaults for all fields in the form (excluding pageBreak fields)
+    form.fields
+      .filter((field) => field.type !== "pageBreak")
+      .forEach((field) => {
+        defaults[field.id] =
+          initialData[field.id] ?? getFieldDefaultValue(field);
+      });
 
     return defaults;
   }, [form.fields, initialData]);
@@ -147,25 +154,34 @@ export const FormProvider: React.FC<FormProviderProps> = ({
     formState: rhfFormState,
   } = formMethods;
 
-  // Multi-step logic
-  const { fieldGroups, fields } = form;
-  const isMultiStep = fieldGroups && fieldGroups.length > 0;
+  // Multi-step logic using pageBreak detection
+  const isMultiStep = hasMultiStepLayout(form.fields);
+
+  // Create steps based on pageBreak fields
+  const stepConfiguration = useMemo(() => {
+    if (isMultiStep) {
+      return groupFieldsByPageBreaks(form.fields);
+    }
+
+    // Single step - all non-pageBreak fields
+    return {
+      steps: [
+        {
+          title: "Form",
+          fields: form.fields.filter((field) => field.type !== "pageBreak"),
+        },
+      ],
+      totalSteps: 1,
+    };
+  }, [form.fields, isMultiStep]);
 
   const [currentStep, setCurrentStep] = React.useState(0);
 
-  const totalSteps = useMemo(() => {
-    if (isMultiStep) {
-      return fieldGroups!.length;
-    }
-    return 1;
-  }, [isMultiStep, fieldGroups]);
+  const totalSteps = stepConfiguration.totalSteps;
 
   const currentStepFields = useMemo(() => {
-    if (isMultiStep) {
-      return fieldGroups![currentStep]?.fields || [];
-    }
-    return fields;
-  }, [isMultiStep, fieldGroups, currentStep, fields]);
+    return stepConfiguration.steps[currentStep]?.fields || [];
+  }, [stepConfiguration.steps, currentStep]);
 
   // Form state
   const [formState, setFormState] = React.useState<FormState>({
