@@ -30,11 +30,23 @@ export const StartingPageField: React.FC<StartingPageFieldProps> = ({
     }
   };
 
-  // Extract metadata from field configuration
+  // Extract metadata from field configuration with safe access
   const estimatedTime = field.displayOptions?.estimatedTime || "5 minutes";
   const participantCount = field.displayOptions?.participantCount;
   const features = field.displayOptions?.features || [];
-  const logoUrl = form.theme.customization.branding?.logo?.url;
+
+  // Safe access to nested theme properties with fallbacks
+  const logoUrl =
+    form.theme?.customization?.branding?.logo?.url ||
+    form.customization?.branding?.logo?.url ||
+    form.theme?.logoConfig?.file?.url;
+
+  // Safe access to primary color with fallback
+  const primaryColor =
+    form.theme?.customization?.colors?.primary ||
+    form.customization?.colors?.primary ||
+    form.theme?.colors?.primary ||
+    "#3B82F6"; // Default blue color
 
   return (
     <div
@@ -196,7 +208,7 @@ export const StartingPageField: React.FC<StartingPageFieldProps> = ({
               whileHover={{ scale: 1.02, y: -2 }}
               whileTap={{ scale: 0.98 }}
               style={{
-                backgroundColor: form.theme.customization.colors.primary,
+                backgroundColor: primaryColor,
               }}
             >
               <Play className="w-5 h-5" />

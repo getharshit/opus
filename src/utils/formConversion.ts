@@ -244,39 +244,131 @@ import {
   // FORM CONVERSION UTILITIES
   // ============================================================================
   
-  /**
-   * Convert any form data to the enhanced format
-   */
-  export function convertToEnhancedForm(formData: any): Form {
-    // Handle case where form is already in new format
-    if (isEnhancedForm(formData)) {
-      return formData;
-    }
-    
-    // Convert legacy form to new format
-    const enhancedFields = formData.fields.map((field: any) => {
-      if (isLegacyField(field)) {
-        return convertLegacyField(field);
-      }
-      return field;
-    });
-    
-    return {
-      id: formData.id,
-      title: formData.title,
-      description: formData.description,
-      prompt: formData.prompt,
-      fields: enhancedFields,
-      fieldGroups: formData.fieldGroups || undefined,
-      theme: enhanceTheme(formData.theme || {}),
-      customization: formData.customization || createDefaultCustomization(),
-      layout: formData.layout || createDefaultLayout(),
-      settings: formData.settings || createDefaultSettings(),
-      createdAt: formData.createdAt,
-      updatedAt: formData.updatedAt
-    };
+
+/**
+ * Convert any form data to the enhanced format
+ */
+export function convertToEnhancedForm(formData: any): Form {
+  // Handle case where form is already in new format
+  if (isEnhancedForm(formData)) {
+    console.log('✅ Form already in enhanced format');
+    return formData;
   }
   
+  console.log('🔄 Converting form to enhanced format...', {
+    originalTitle: formData.title,
+    originalFieldCount: formData.fields?.length,
+    originalFieldTypes: formData.fields?.map((f: any) => f.type)
+  });
+  
+  // Convert legacy form to new format
+  const enhancedFields = formData.fields.map((field: any) => {
+    if (isLegacyField(field)) {
+      console.log(`🔄 Converting legacy field: ${field.type} → enhanced`);
+      return convertLegacyField(field);
+    }
+    
+    // Ensure all enhanced fields have proper structure
+    return ensureFieldProperties(field);
+  });
+  
+  const convertedForm: Form = {
+    id: formData.id,
+    title: formData.title,
+    description: formData.description || '',
+    prompt: formData.prompt || '',
+    fields: enhancedFields,
+    fieldGroups: formData.fieldGroups || undefined,
+    theme: enhanceTheme(formData.theme || {}),
+    customization: formData.customization || createDefaultCustomization(),
+    layout: formData.layout || createDefaultLayout(),
+    settings: formData.settings || createDefaultSettings(),
+    createdAt: new Date(formData.createdAt),
+    updatedAt: new Date(formData.updatedAt)
+  };
+
+  // Add conversion logging for debugging
+  console.log('✅ Form Conversion Complete:', {
+    formId: convertedForm.id,
+    title: convertedForm.title,
+    originalFieldCount: formData.fields?.length,
+    convertedFieldCount: convertedForm.fields.length,
+    fieldTypes: convertedForm.fields.map(f => `${f.type}${f.required ? '*' : ''}`),
+    hasCustomization: !!convertedForm.customization,
+    hasLayout: !!convertedForm.layout,
+    hasSettings: !!convertedForm.settings,
+    hasFieldGroups: !!convertedForm.fieldGroups,
+    layoutType: convertedForm.layout?.type
+  });
+
+  return convertedForm;
+}
+  
+/**
+ * Ensure field has all required properties for PublicFormRenderer
+ */
+function ensureFieldProperties(field: any): FormField {
+  const baseField: FormField = {
+    id: field.id,
+    type: field.type,
+    label: field.label,
+    description: field.description || undefined,
+    required: field.required || false,
+    placeholder: field.placeholder || undefined,
+    options: field.options || undefined,
+    maxRating: field.maxRating || undefined,
+    minRating: field.minRating || undefined,
+    maxLength: field.maxLength || undefined,
+    minLength: field.minLength || undefined,
+    acceptedFileTypes: field.acceptedFileTypes || undefined,
+    maxFileSize: field.maxFileSize || undefined,
+    defaultValue: field.defaultValue || undefined,
+    helpText: field.helpText || undefined,
+    validationRules: field.validationRules || undefined,
+    displayOptions: field.displayOptions || getDefaultDisplayOptions(field.type),
+    conditionalLogic: field.conditionalLogic || undefined
+  };
+
+  // Add field-specific defaults if missing
+  switch (field.type) {
+    case 'multipleChoice':
+    case 'dropdown':
+      if (!baseField.options || baseField.options.length === 0) {
+        baseField.options = ['Option 1', 'Option 2', 'Option 3'];
+      }
+      break;
+      
+    case 'numberRating':
+      if (!baseField.maxRating) baseField.maxRating = 5;
+      if (!baseField.minRating) baseField.minRating = 1;
+      break;
+      
+    case 'opinionScale':
+      baseField.maxRating = 10;
+      baseField.minRating = 1;
+      break;
+      
+    case 'fileUpload':
+      if (!baseField.acceptedFileTypes) {
+        baseField.acceptedFileTypes = ['.pdf', '.jpg', '.png', '.doc', '.docx'];
+      }
+      if (!baseField.maxFileSize) {
+        baseField.maxFileSize = 10; // 10MB default
+      }
+      break;
+      
+    case 'shortText':
+      if (!baseField.maxLength) baseField.maxLength = 100;
+      break;
+      
+    case 'longText':
+      if (!baseField.maxLength) baseField.maxLength = 500;
+      break;
+  }
+
+  return baseField;
+}
+
   /**
    * Prepare form data for database storage
    */

@@ -404,4 +404,4 @@ export function migrateLegacyField(legacyField: LegacyFormField): FormField {
 }
 
 export type { ExtendedFieldType };
-export type FormBuilderFieldType = ExtendedFieldType;
+

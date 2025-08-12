@@ -199,7 +199,7 @@ export async function POST(
   { params }: { params: { id: string } }
 ) {
   try {
-    const { id } = params;
+    const { id } = await params;
     const { data } = await request.json();
 
     if (!id) {

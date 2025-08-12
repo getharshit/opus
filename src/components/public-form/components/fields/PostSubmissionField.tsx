@@ -61,7 +61,12 @@ export const PostSubmissionField: React.FC<PostSubmissionFieldProps> = ({
   const redirectUrl = field.displayOptions?.redirectUrl;
   const redirectDelay = field.displayOptions?.redirectDelay || 5;
   const customActions = field.displayOptions?.customActions || [];
-  const logoUrl = form.theme.customization.branding?.logo?.url;
+
+  // Safe access to nested theme properties with fallbacks
+  const logoUrl =
+    form.theme?.customization?.branding?.logo?.url ||
+    form.customization?.branding?.logo?.url ||
+    form.theme?.logoConfig?.file?.url;
 
   // Auto-redirect timer
   const [redirectCountdown, setRedirectCountdown] = useState(
@@ -91,13 +96,17 @@ export const PostSubmissionField: React.FC<PostSubmissionFieldProps> = ({
               key={i}
               className="absolute w-2 h-2 bg-gradient-to-r from-blue-400 to-purple-500 rounded-full"
               initial={{
-                x: Math.random() * window.innerWidth,
+                x:
+                  Math.random() *
+                  (typeof window !== "undefined" ? window.innerWidth : 800),
                 y: -10,
                 rotate: 0,
                 opacity: 1,
               }}
               animate={{
-                y: window.innerHeight + 10,
+                y:
+                  (typeof window !== "undefined" ? window.innerHeight : 600) +
+                  10,
                 rotate: 360,
                 opacity: 0,
               }}

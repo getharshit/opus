@@ -43,56 +43,84 @@ export interface ExtendedFormField extends Omit<BaseFormField, 'type'> {
   helpText?: string;             // Additional help text
   
   // Validation rules
-  validationRules?: {
-    pattern?: string;            // Regex pattern
-    min?: number;               // Min value for numbers
-    max?: number;               // Max value for numbers
-    customMessage?: string;      // Custom validation message
-    requireScrollToAccept?: boolean; // For legal fields
-  };
+validationRules?: {
+  pattern?: string;            // Regex pattern
+  min?: number;               // Min value for numbers
+  max?: number;               // Max value for numbers
+  customMessage?: string;      // Custom validation message
+  requireScrollToAccept?: boolean; // For legal fields
+  
+  // Email field validation
+  allowedDomains?: string[];   // Allowed email domains
+  blockedDomains?: string[];   // Blocked email domains
+};
   
   // Display options (enhanced for new field types)
-  displayOptions?: {
-    width?: 'full' | 'half' | 'third';
-    showLabel?: boolean;
-    showDescription?: boolean;
-    inline?: boolean;           // For yes/no, checkboxes
-    
-    // Statement field options
-    variant?: 'default' | 'highlighted' | 'info' | 'warning';
-    imageUrl?: string;
-    imageAlt?: string;
-    links?: Array<{
-      text: string;
-      url: string;
-      external?: boolean;
-    }>;
-    
-    // Legal field options
-    termsTitle?: string;
-    externalLinks?: Array<{
-      text: string;
-      url: string;
-    }>;
-    
-    // Starting page options
-    estimatedTime?: string;
-    participantCount?: number;
-    features?: string[];
-    
-    // Post submission options
-    showDownload?: boolean;
-    showShare?: boolean;
-    showFeedback?: boolean;
-    redirectUrl?: string;
-    redirectDelay?: number;
-    customActions?: Array<{
-      type: string;
-      label: string;
-      icon?: 'external' | 'home' | 'mail' | 'message';
-      style?: 'primary' | 'secondary';
-      data?: any;
-    }>;
+  // Display options (enhanced for new field types)
+displayOptions?: {
+  width?: 'full' | 'half' | 'third';
+  showLabel?: boolean;
+  showDescription?: boolean;
+  inline?: boolean;           // For yes/no, checkboxes
+  
+  // Text field options
+  rows?: number;             // For textarea height
+  
+  // Choice field options
+  layout?: 'vertical' | 'horizontal' | 'grid';
+  columns?: number;          // For grid layout
+  allowOther?: boolean;      // Allow "Other" option
+  otherLabel?: string;       // Custom "Other" label
+  randomizeOptions?: boolean; // Randomize option order
+  
+  // Dropdown specific options
+  searchable?: boolean;      // Make dropdown searchable
+  maxHeight?: number;        // Dropdown max height
+  
+  // Rating field options
+  style?: 'numbers' | 'stars' | 'emoji';
+  labels?: {
+    low?: string;           // Label for minimum value
+    high?: string;          // Label for maximum value
+  };
+  showValue?: boolean;      // Display selected value
+  allowHalf?: boolean;      // Allow half-star ratings
+  
+  // Statement field options
+  variant?: 'default' | 'highlighted' | 'info' | 'warning';
+  imageUrl?: string;
+  imageAlt?: string;
+  links?: Array<{
+    text: string;
+    url: string;
+    external?: boolean;
+  }>;
+  
+  // Legal field options
+  termsTitle?: string;
+  externalLinks?: Array<{
+    text: string;
+    url: string;
+  }>;
+  
+  // Starting page options
+  estimatedTime?: string;
+  participantCount?: number;
+  features?: string[];
+  
+  // Post submission options
+  showDownload?: boolean;
+  showShare?: boolean;
+  showFeedback?: boolean;
+  redirectUrl?: string;
+  redirectDelay?: number;
+  customActions?: Array<{
+    type: string;
+    label: string;
+    icon?: 'external' | 'home' | 'mail' | 'message';
+    style?: 'primary' | 'secondary';
+    data?: any;
+  }>;
   };
   
   // Logic and conditions

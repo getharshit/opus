@@ -9,7 +9,7 @@ import React, {
   useCallback,
   useRef,
 } from "react";
-import { useReducedMotion, Variants } from "framer-motion";
+import { useReducedMotion, Variants, Transition } from "framer-motion";
 import {
   AnimationConfig,
   AnimationContextValue,
@@ -17,40 +17,59 @@ import {
   AnimationPreset,
   IntensitySettings,
   AnimationVariants,
+  AnimationTransitions,
+  AnimationTiming,
+  AnimationEasing,
 } from "./types";
-import {
-  createAnimationVariants,
-  createAnimationTransitions,
-  getVariantsByPreset,
-  createTransition,
-  adjustAnimationIntensity,
-  intensityConfigurations,
-  createButtonVariants,
-  createShakeVariants,
-  optimizeVariantsForPerformance,
-} from "./presets";
 
-// Create default animation configuration with intensity system
+// Intensity configurations
+const intensityConfigurations: Record<AnimationIntensity, IntensitySettings> = {
+  none: {
+    duration: 0,
+    easing: { type: "linear" },
+    scale: { hover: 1, tap: 1 },
+    shake: { intensity: 0, duration: 0 },
+    bounce: { stiffness: 0, damping: 100 },
+  },
+  subtle: {
+    duration: 0.15,
+    easing: { type: "easeOut" },
+    scale: { hover: 1.01, tap: 0.99 },
+    shake: { intensity: 3, duration: 0.3 },
+    bounce: { stiffness: 300, damping: 20 },
+  },
+  moderate: {
+    duration: 0.3,
+    easing: { type: "easeInOut" },
+    scale: { hover: 1.02, tap: 0.98 },
+    shake: { intensity: 6, duration: 0.4 },
+    bounce: { stiffness: 200, damping: 15 },
+  },
+  playful: {
+    duration: 0.5,
+    easing: { type: "spring", stiffness: 200, damping: 15 },
+    scale: { hover: 1.05, tap: 0.95 },
+    shake: { intensity: 10, duration: 0.6 },
+    bounce: { stiffness: 400, damping: 10 },
+  },
+};
+
+// Create default animation configuration
 const createDefaultAnimationConfig = (): AnimationConfig => ({
   enabled: true,
   respectReducedMotion: true,
   intensity: "moderate",
-
-  // Intensity configurations
   intensitySettings: intensityConfigurations,
-
   fieldEntrance: {
     preset: "slideUp",
     timing: { duration: 0.3, delay: 0, stagger: 0.1 },
     easing: { type: "easeOut" },
   },
-
   fieldExit: {
     preset: "fade",
     timing: { duration: 0.2, delay: 0, stagger: 0 },
     easing: { type: "easeIn" },
   },
-
   button: {
     hover: {
       scale: 1.02,
@@ -66,7 +85,6 @@ const createDefaultAnimationConfig = (): AnimationConfig => ({
       duration: 0.2,
     },
   },
-
   error: {
     preset: "shake",
     timing: { duration: 0.5, delay: 0, stagger: 0 },
@@ -75,7 +93,6 @@ const createDefaultAnimationConfig = (): AnimationConfig => ({
       duration: 0.5,
     },
   },
-
   success: {
     preset: "bounce",
     timing: { duration: 0.6, delay: 0, stagger: 0 },
@@ -84,8 +101,6 @@ const createDefaultAnimationConfig = (): AnimationConfig => ({
       damping: 10,
     },
   },
-
-  // Performance settings
   performance: {
     enableGPU: true,
     enableWillChange: true,
@@ -93,8 +108,158 @@ const createDefaultAnimationConfig = (): AnimationConfig => ({
   },
 });
 
+// Create complete animation variants matching the AnimationVariants interface
+const createAnimationVariants = (): AnimationVariants => ({
+  field: {
+    fade: {
+      hidden: { opacity: 0 },
+      visible: { opacity: 1 },
+      exit: { opacity: 0 },
+    },
+    slideUp: {
+      hidden: { opacity: 0, y: 20 },
+      visible: { opacity: 1, y: 0 },
+      exit: { opacity: 0, y: -20 },
+    },
+    slideDown: {
+      hidden: { opacity: 0, y: -20 },
+      visible: { opacity: 1, y: 0 },
+      exit: { opacity: 0, y: 20 },
+    },
+    slideLeft: {
+      hidden: { opacity: 0, x: 20 },
+      visible: { opacity: 1, x: 0 },
+      exit: { opacity: 0, x: -20 },
+    },
+    slideRight: {
+      hidden: { opacity: 0, x: -20 },
+      visible: { opacity: 1, x: 0 },
+      exit: { opacity: 0, x: 20 },
+    },
+    scale: {
+      hidden: { opacity: 0, scale: 0.8 },
+      visible: { opacity: 1, scale: 1 },
+      exit: { opacity: 0, scale: 0.8 },
+    },
+    scaleUp: {
+      hidden: { opacity: 0, scale: 0.5 },
+      visible: { opacity: 1, scale: 1 },
+      exit: { opacity: 0, scale: 1.2 },
+    },
+    scaleDown: {
+      hidden: { opacity: 0, scale: 1.2 },
+      visible: { opacity: 1, scale: 1 },
+      exit: { opacity: 0, scale: 0.5 },
+    },
+    bounce: {
+      hidden: { opacity: 0, scale: 0.3 },
+      visible: {
+        opacity: 1,
+        scale: 1,
+        transition: { type: "spring", stiffness: 400, damping: 10 },
+      },
+      exit: { opacity: 0, scale: 0.3 },
+    },
+    spring: {
+      hidden: { opacity: 0, scale: 0.8, rotate: -10 },
+      visible: {
+        opacity: 1,
+        scale: 1,
+        rotate: 0,
+        transition: { type: "spring", stiffness: 200, damping: 15 },
+      },
+      exit: { opacity: 0, scale: 0.8, rotate: 10 },
+    },
+  },
+  error: {
+    shake: {
+      idle: { x: 0 },
+      shake: {
+        x: [-10, 10, -10, 10, 0],
+        transition: { duration: 0.5, ease: "easeInOut" },
+      },
+    },
+    pulse: {
+      idle: { scale: 1 },
+      pulse: {
+        scale: [1, 1.05, 1],
+        transition: { duration: 0.3, ease: "easeInOut" },
+      },
+    },
+  },
+  success: {
+    scale: {
+      idle: { scale: 1 },
+      success: {
+        scale: [1, 1.1, 1],
+        transition: { duration: 0.4, ease: "easeOut" },
+      },
+    },
+    bounce: {
+      idle: { y: 0 },
+      success: {
+        y: [0, -10, 0],
+        transition: { type: "spring", stiffness: 400, damping: 10 },
+      },
+    },
+  },
+  button: {
+    default: {
+      idle: { scale: 1 },
+      hover: { scale: 1.02 },
+      tap: { scale: 0.98 },
+      disabled: { opacity: 0.5, scale: 1 },
+    },
+    primary: {
+      idle: { scale: 1, boxShadow: "0 2px 4px rgba(0,0,0,0.1)" },
+      hover: { scale: 1.02, boxShadow: "0 4px 8px rgba(0,0,0,0.15)" },
+      tap: { scale: 0.98, boxShadow: "0 1px 2px rgba(0,0,0,0.1)" },
+      disabled: {
+        opacity: 0.5,
+        scale: 1,
+        boxShadow: "0 1px 2px rgba(0,0,0,0.05)",
+      },
+    },
+    secondary: {
+      idle: { scale: 1, opacity: 0.8 },
+      hover: { scale: 1.01, opacity: 1 },
+      tap: { scale: 0.99, opacity: 0.9 },
+      disabled: { opacity: 0.3, scale: 1 },
+    },
+  },
+});
+
+// Create animation transitions matching the AnimationTransitions interface
+const createAnimationTransitions = (): AnimationTransitions => ({
+  none: { duration: 0 },
+  subtle: {
+    duration: 0.15,
+    ease: "easeOut",
+  },
+  moderate: {
+    duration: 0.3,
+    ease: "easeInOut",
+  },
+  playful: {
+    duration: 0.5,
+    ease: "easeInOut",
+  },
+  spring: {
+    type: "spring",
+    stiffness: 200,
+    damping: 15,
+  },
+  bounce: {
+    type: "spring",
+    stiffness: 400,
+    damping: 10,
+  },
+});
+
+// Create context
 const AnimationContext = createContext<AnimationContextValue | null>(null);
 
+// Hook to use animation context
 export const useAnimation = () => {
   const context = useContext(AnimationContext);
   if (!context) {
@@ -118,9 +283,6 @@ export const AnimationProvider: React.FC<AnimationProviderProps> = ({
     ...initialConfig,
   }));
 
-  // Track previous intensity for cleanup
-  const previousIntensity = useRef<AnimationIntensity>(config.intensity);
-
   // Determine if animations should be disabled
   const isReducedMotion = Boolean(
     config.respectReducedMotion && prefersReducedMotion
@@ -130,12 +292,8 @@ export const AnimationProvider: React.FC<AnimationProviderProps> = ({
     : config.intensity;
   const animationsEnabled = config.enabled && !isReducedMotion;
 
-  // Create variants and transitions with proper typing
-  const variants = useMemo(() => {
-    const baseVariants = createAnimationVariants();
-    return baseVariants;
-  }, []);
-
+  // Create variants and transitions - memoized and stable
+  const variants = useMemo(() => createAnimationVariants(), []);
   const transitions = useMemo(() => createAnimationTransitions(), []);
 
   // Get current intensity settings
@@ -143,36 +301,17 @@ export const AnimationProvider: React.FC<AnimationProviderProps> = ({
     return config.intensitySettings[effectiveIntensity];
   }, [config.intensitySettings, effectiveIntensity]);
 
-  // Update configuration with immediate application
+  // Update configuration - stable reference
   const updateConfig = useCallback((updates: Partial<AnimationConfig>) => {
-    setConfig((prev) => {
-      const newConfig = { ...prev, ...updates };
-
-      // If intensity changed, update the ref
-      if (updates.intensity && updates.intensity !== prev.intensity) {
-        previousIntensity.current = prev.intensity;
-      }
-
-      return newConfig;
-    });
+    setConfig((prev) => ({ ...prev, ...updates }));
   }, []);
 
-  // Update intensity with immediate effect
-  const updateIntensity = useCallback(
-    (intensity: AnimationIntensity) => {
-      updateConfig({ intensity });
-    },
-    [updateConfig]
-  );
+  // Update intensity - stable reference
+  const updateIntensity = useCallback((intensity: AnimationIntensity) => {
+    setConfig((prev) => ({ ...prev, intensity }));
+  }, []);
 
-  // Apply reduced motion preference changes
-  useEffect(() => {
-    if (isReducedMotion && config.intensity !== "none") {
-      console.log("Reduced motion detected, animations disabled");
-    }
-  }, [isReducedMotion, config.intensity]);
-
-  // Get field variants with intensity adjustment - returns Framer Motion Variants
+  // Get field variants with proper typing
   const getFieldVariants = useCallback(
     (preset: AnimationPreset): Variants => {
       if (!animationsEnabled || effectiveIntensity === "none") {
@@ -183,31 +322,42 @@ export const AnimationProvider: React.FC<AnimationProviderProps> = ({
         };
       }
 
-      return getVariantsByPreset(preset, variants, effectiveIntensity);
+      // Get the variants from the field variants
+      const fieldVariants =
+        variants.field[preset as keyof typeof variants.field];
+      if (!fieldVariants) {
+        return variants.field.slideUp; // Fallback
+      }
+
+      return fieldVariants;
     },
     [animationsEnabled, effectiveIntensity, variants]
   );
 
   // Get transition with intensity
   const getTransition = useCallback(
-    (timing: any, easing: any) => {
+    (timing: AnimationTiming, easing: AnimationEasing): Transition => {
       if (!animationsEnabled || effectiveIntensity === "none") {
         return { duration: 0 };
       }
 
-      return createTransition(timing, easing, effectiveIntensity);
+      const settings = getCurrentIntensitySettings();
+      return {
+        duration: settings.duration,
+        ease:
+          settings.easing.type === "spring"
+            ? "easeInOut"
+            : settings.easing.type,
+        delay: timing.delay || 0,
+      };
     },
-    [animationsEnabled, effectiveIntensity]
+    [animationsEnabled, effectiveIntensity, getCurrentIntensitySettings]
   );
 
-  // Cleanup effect with proper ref handling
+  // Cleanup effect
   useEffect(() => {
-    // Store current cleanup setting in effect scope
-    const shouldCleanup = config.performance.cleanupOnUnmount;
-
     return () => {
-      if (shouldCleanup) {
-        // Reset willChange on all animated elements
+      if (config.performance.cleanupOnUnmount) {
         const animatedElements = document.querySelectorAll(
           '[data-animated="true"]'
         );
@@ -220,8 +370,8 @@ export const AnimationProvider: React.FC<AnimationProviderProps> = ({
     };
   }, [config.performance.cleanupOnUnmount]);
 
-  // Context value with memoization for performance
-  const contextValue: AnimationContextValue = useMemo(
+  // Context value - properly memoized
+  const contextValue = useMemo<AnimationContextValue>(
     () => ({
       config,
       variants,
@@ -253,100 +403,72 @@ export const AnimationProvider: React.FC<AnimationProviderProps> = ({
   );
 };
 
-// Hook for accessing animation settings from form customization
+// Simplified hook for form customization - NO DEPENDENCIES LOOP
 export const useAnimationFromCustomization = (customization?: any) => {
-  const animation = useAnimation();
+  const { updateConfig } = useAnimation();
+  const lastCustomizationRef = useRef<string>("");
 
   useEffect(() => {
-    if (customization?.animations) {
-      const animationConfig = convertCustomizationToAnimationConfig(
-        customization.animations
-      );
-      animation.updateConfig(animationConfig);
+    if (!customization?.animations) return;
+
+    const customizationString = JSON.stringify(customization.animations);
+    if (customizationString === lastCustomizationRef.current) {
+      return;
     }
-  }, [customization, animation]);
 
-  return animation;
+    console.log("Applying animation customization:", customization.animations);
+
+    const animationUpdates: Partial<AnimationConfig> = {
+      enabled: customization.animations.enableAnimations ?? true,
+      intensity: mapIntensity(customization.animations.intensity),
+    };
+
+    updateConfig(animationUpdates);
+    lastCustomizationRef.current = customizationString;
+  }, [
+    customization?.animations?.enableAnimations,
+    customization?.animations?.intensity,
+    updateConfig,
+  ]);
 };
 
-// Hook for intensity-specific button animations
+// Hook for button animations
 export const useButtonAnimation = (): Variants => {
-  const { config, isReducedMotion } = useAnimation();
+  const { variants, config, isReducedMotion } = useAnimation();
   const effectiveIntensity = isReducedMotion ? "none" : config.intensity;
 
   return useMemo(() => {
-    return createButtonVariants(effectiveIntensity);
-  }, [effectiveIntensity]);
+    if (effectiveIntensity === "none") {
+      return {
+        idle: { scale: 1 },
+        hover: { scale: 1 },
+        tap: { scale: 1 },
+        disabled: { opacity: 0.5 },
+      };
+    }
+
+    return variants.button.default;
+  }, [variants, effectiveIntensity]);
 };
 
-// Hook for error animations with intensity
+// Hook for error animations
 export const useErrorAnimation = (): Variants => {
-  const { config, isReducedMotion } = useAnimation();
+  const { variants, config, isReducedMotion } = useAnimation();
   const effectiveIntensity = isReducedMotion ? "none" : config.intensity;
 
   return useMemo(() => {
-    return createShakeVariants(effectiveIntensity);
-  }, [effectiveIntensity]);
+    if (effectiveIntensity === "none") {
+      return {
+        idle: { x: 0 },
+        shake: { x: 0 },
+      };
+    }
+
+    return variants.error.shake;
+  }, [variants, effectiveIntensity]);
 };
 
-// Hook for form-specific animations
-export const useFormAnimations = () => {
-  const { getFieldVariants, getTransition, config } = useAnimation();
-
-  return useMemo(
-    () => ({
-      // Field entrance animation
-      fieldEntrance: getFieldVariants(config.fieldEntrance.preset),
-      // Field exit animation
-      fieldExit: getFieldVariants(config.fieldExit.preset),
-      // Success animation
-      success: getFieldVariants(config.success.preset),
-      // Error animation
-      error: getFieldVariants(config.error.preset),
-      // Get transition for timing
-      getFieldTransition: (preset: AnimationPreset) =>
-        getTransition(config.fieldEntrance.timing, config.fieldEntrance.easing),
-    }),
-    [getFieldVariants, getTransition, config]
-  );
-};
-
-// Convert form customization to animation config
-const convertCustomizationToAnimationConfig = (
-  animationCustomization: any
-): Partial<AnimationConfig> => {
-  return {
-    enabled: animationCustomization.enableAnimations ?? true,
-    intensity: mapIntensity(animationCustomization.intensity),
-    fieldEntrance: {
-      preset: animationCustomization.questionEntrance?.type || "slideUp",
-      timing: {
-        duration:
-          (animationCustomization.questionEntrance?.duration || 300) / 1000,
-        delay: (animationCustomization.questionEntrance?.delay || 0) / 1000,
-        stagger: 0.1,
-      },
-      easing: { type: "easeOut" },
-    },
-    button: {
-      hover: {
-        scale: animationCustomization.buttonHover?.scale || 1.02,
-        duration: (animationCustomization.buttonHover?.duration || 200) / 1000,
-        easing: { type: "easeOut" },
-      },
-      tap: {
-        scale: 0.98,
-        duration: 0.1,
-      },
-      disabled: {
-        opacity: 0.5,
-        duration: 0.2,
-      },
-    },
-  };
-};
-
-// Map string intensity to type
+// Map string intensity to typed intensity
 const mapIntensity = (intensity?: string): AnimationIntensity => {
   switch (intensity) {
     case "none":
@@ -362,21 +484,18 @@ const mapIntensity = (intensity?: string): AnimationIntensity => {
   }
 };
 
-// Animation performance utilities
+// Performance utilities
 export const useAnimationPerformance = () => {
   const { config } = useAnimation();
 
   return useMemo(
     () => ({
-      // Enable GPU acceleration for an element
       enableGPU: (element: HTMLElement) => {
         if (config.performance.enableGPU) {
           element.style.transform = "translate3d(0, 0, 0)";
           element.setAttribute("data-animated", "true");
         }
       },
-
-      // Clean up animations for an element
       cleanup: (element: HTMLElement) => {
         if (config.performance.cleanupOnUnmount) {
           element.style.willChange = "auto";
@@ -384,8 +503,6 @@ export const useAnimationPerformance = () => {
           element.removeAttribute("data-animated");
         }
       },
-
-      // Check if animations should be enabled
       shouldAnimate: config.enabled && config.intensity !== "none",
     }),
     [config]
