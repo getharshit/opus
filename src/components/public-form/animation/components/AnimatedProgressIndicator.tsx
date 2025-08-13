@@ -1,6 +1,6 @@
 "use client";
 
-import React from "react";
+import React, { useEffect } from "react";
 import { motion } from "framer-motion";
 import { useAnimation } from "../AnimationProvider";
 import { AnimatedComponentProps } from "../types";
@@ -29,6 +29,12 @@ export const AnimatedProgressIndicator: React.FC<
 }: AnimatedProgressIndicatorProps) => {
   const { config, getIntensitySettings } = useAnimation();
   const intensitySettings = getIntensitySettings();
+
+  useEffect(() => {
+    const computedStyle = getComputedStyle(document.documentElement);
+    const primaryColor = computedStyle.getPropertyValue("--form-color-primary");
+    console.log("Primary color CSS property:", primaryColor);
+  }, []);
 
   // Create transitions based on intensity
   const barTransition = customTransition || {
@@ -60,16 +66,21 @@ export const AnimatedProgressIndicator: React.FC<
           <div className={`w-full ${className}`} data-animated="false">
             {showPercentage && (
               <div className="flex justify-between items-center mb-2">
-                <span className="text-sm text-gray-600">Progress</span>
-                <span className="text-sm font-medium text-gray-900">
+                <span className="text-sm var(--form-color-text-secondary, #6b7280)">
+                  Progress
+                </span>
+                <span className="text-sm font-medium var(--form-color-text-primary, #111827)">
                   {Math.round(progress)}%
                 </span>
               </div>
             )}
             <div className="w-full bg-gray-200 rounded-full h-2">
               <div
-                className="bg-blue-600 h-2 rounded-full"
-                style={{ width: `${progress}%` }}
+                className="h-2 rounded-full"
+                style={{
+                  backgroundColor: "var(--form-color-primary, #3b82f6)",
+                  width: `${progress}%`,
+                }}
               />
             </div>
           </div>
@@ -104,12 +115,12 @@ export const AnimatedProgressIndicator: React.FC<
                   fill="none"
                   strokeDasharray={175.9}
                   strokeDashoffset={175.9 * (1 - progress / 100)}
-                  className="text-blue-600"
+                  style={{ color: "var(--form-color-primary, #3b82f6)" }}
                   strokeLinecap="round"
                 />
               </svg>
               <div className="absolute inset-0 flex items-center justify-center">
-                <span className="text-sm font-medium text-gray-900">
+                <span className="text-sm font-medium var(--form-color-text-primary, #111827)">
                   {Math.round(progress)}%
                 </span>
               </div>
@@ -126,18 +137,26 @@ export const AnimatedProgressIndicator: React.FC<
             {Array.from({ length: steps }).map((_, index) => (
               <div key={index} className="flex items-center">
                 <div
-                  className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium ${
-                    index <= currentStep
-                      ? "bg-blue-600 text-white"
-                      : "bg-gray-200 text-gray-600"
-                  }`}
+                  className="w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium"
+                  style={{
+                    backgroundColor:
+                      index <= currentStep
+                        ? "var(--form-color-primary, #3b82f6)"
+                        : "var(--form-color-secondary, #e5e7eb)",
+                    color:
+                      index <= currentStep
+                        ? "var(--form-color-text-inverse, #ffffff)"
+                        : "var(--form-color-text-muted, #6b7280)",
+                  }}
                 >
                   {index + 1}
                 </div>
                 {index < steps - 1 && (
                   <div
                     className={`w-8 h-1 mx-2 ${
-                      index < currentStep ? "bg-blue-600" : "bg-gray-200"
+                      index < currentStep
+                        ? "var(--form-color-primary, #3b82f6)"
+                        : "var(--form-color-secondary, #f3f4f6)"
                     }`}
                   />
                 )}
@@ -162,9 +181,11 @@ export const AnimatedProgressIndicator: React.FC<
               animate={{ opacity: 1 }}
               transition={{ duration: intensitySettings.duration * 0.5 }}
             >
-              <span className="text-sm text-gray-600">Progress</span>
+              <span className="text-sm var(--form-color-text-secondary, #6b7280)">
+                Progress
+              </span>
               <motion.span
-                className="text-sm font-medium text-gray-900"
+                className="text-sm font-medium var(--form-color-text-primary, #111827)"
                 key={progress}
                 initial={{ scale: 0.8 }}
                 animate={{ scale: 1 }}
@@ -176,13 +197,21 @@ export const AnimatedProgressIndicator: React.FC<
           )}
           <div className="w-full bg-gray-200 rounded-full h-2 overflow-hidden">
             <motion.div
-              className="bg-blue-600 h-2 rounded-full"
-              initial={{ width: 0 }}
-              animate={{ width: `${progress}%` }}
-              transition={barTransition}
+              className="h-2 rounded-full"
               style={{
+                backgroundColor:
+                  "var(--form-color-primary, #3b82f6) !important",
                 willChange: config.enabled ? "width" : "auto",
               }}
+              initial={{
+                width: 0,
+                backgroundColor: "var(--form-color-primary, #3b82f6)",
+              }}
+              animate={{
+                width: `${progress}%`,
+                backgroundColor: "var(--form-color-primary, #3b82f6)",
+              }}
+              transition={barTransition}
               {...motionProps}
             />
           </div>
@@ -231,7 +260,7 @@ export const AnimatedProgressIndicator: React.FC<
             </svg>
             <div className="absolute inset-0 flex items-center justify-center">
               <motion.span
-                className="text-sm font-medium text-gray-900"
+                className="text-sm font-medium var(--form-color-text-primary, #111827)"
                 key={progress}
                 initial={{ scale: 0.8, opacity: 0 }}
                 animate={{ scale: 1, opacity: 1 }}
@@ -256,13 +285,14 @@ export const AnimatedProgressIndicator: React.FC<
                 className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium ${
                   index <= currentStep
                     ? "bg-blue-600 text-white"
-                    : "bg-gray-200 text-gray-600"
+                    : "bg-gray-200 var(--form-color-text-secondary, #6b7280)"
                 }`}
                 initial={{ scale: 0.8, opacity: 0 }}
                 animate={{
-                  scale: 1,
-                  opacity: 1,
-                  backgroundColor: index <= currentStep ? "#2563EB" : "#E5E7EB",
+                  backgroundColor:
+                    index <= currentStep
+                      ? "var(--form-color-primary, #3b82f6)"
+                      : "var(--form-color-secondary, #e5e7eb)",
                 }}
                 transition={{
                   ...stepsTransition,
@@ -284,7 +314,9 @@ export const AnimatedProgressIndicator: React.FC<
               {index < steps - 1 && (
                 <motion.div
                   className={`w-8 h-1 mx-2 ${
-                    index < currentStep ? "bg-blue-600" : "bg-gray-200"
+                    index < currentStep
+                      ? "var(--form-color-primary, #f3f4f6)"
+                      : "var(--form-color-secondary, #f3f4f6)"
                   }`}
                   initial={{ scaleX: 0 }}
                   animate={{

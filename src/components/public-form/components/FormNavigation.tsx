@@ -3,7 +3,6 @@
 import React from "react";
 import { NavigationConfig } from "../types";
 import { ChevronLeft, ChevronRight } from "lucide-react";
-import { AnimatedButton } from "../animation/components";
 
 interface FormNavigationProps {
   config: NavigationConfig;
@@ -31,26 +30,72 @@ export const FormNavigation: React.FC<FormNavigationProps> = ({
   const isLastStep = currentStep === totalSteps;
 
   return (
-    <div className="form-navigation mt-8 pt-6 border-t border-gray-200">
+    <div
+      className="form-navigation"
+      style={{
+        marginTop: "var(--form-spacing-xl, 32px)",
+        paddingTop: "var(--form-spacing-lg, 24px)",
+        borderTop: `1px solid var(--form-color-border, #E5E7EB)`,
+      }}
+    >
       <div className="flex items-center justify-between">
         {/* Back button */}
         <div className="flex-1">
           {config.showBackButton && canGoBack && (
-            <AnimatedButton
-              variant="secondary"
+            <button
+              type="button"
               onClick={onBack}
-              className="inline-flex items-center gap-2 px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-colors"
+              style={{
+                display: "inline-flex",
+                alignItems: "center",
+                gap: "var(--form-spacing-xs, 8px)",
+                padding: `var(--form-spacing-xs, 8px) var(--form-spacing-md, 16px)`,
+                fontSize: "var(--form-font-size-input, 14px)",
+                fontWeight: "var(--form-font-weight-medium, 500)",
+                fontFamily:
+                  "var(--form-font-family-primary, Inter, system-ui, sans-serif)",
+                color: "var(--form-color-text, #374151)",
+                backgroundColor: "var(--form-color-background, #ffffff)",
+                border: `1px solid var(--form-color-border, #D1D5DB)`,
+                borderRadius: "var(--form-border-radius, 8px)",
+                cursor: "pointer",
+                outline: "none",
+                transition: "all 0.2s ease",
+              }}
+              onMouseEnter={(e: React.MouseEvent<HTMLButtonElement>) => {
+                e.currentTarget.style.backgroundColor =
+                  "var(--form-color-background, #F9FAFB)";
+              }}
+              onMouseLeave={(e: React.MouseEvent<HTMLButtonElement>) => {
+                e.currentTarget.style.backgroundColor =
+                  "var(--form-color-background, #ffffff)";
+              }}
+              onFocus={(e: React.FocusEvent<HTMLButtonElement>) => {
+                e.currentTarget.style.outline =
+                  "2px solid var(--form-color-primary, #3B82F6)";
+                e.currentTarget.style.outlineOffset = "2px";
+              }}
+              onBlur={(e: React.FocusEvent<HTMLButtonElement>) => {
+                e.currentTarget.style.outline = "none";
+              }}
             >
               <ChevronLeft className="w-4 h-4" />
               {config.buttonLabels.back}
-            </AnimatedButton>
+            </button>
           )}
         </div>
 
         {/* Progress indicator */}
         <div className="flex-1 flex justify-center">
           {config.showProgressIndicator && (
-            <div className="text-sm text-gray-500">
+            <div
+              style={{
+                color: "var(--form-color-secondary, #6B7280)",
+                fontSize: "var(--form-font-size-small, 14px)",
+                fontFamily:
+                  "var(--form-font-family, Inter, system-ui, sans-serif)",
+              }}
+            >
               {config.showQuestionCounter && (
                 <span>
                   {currentStep} of {totalSteps}
@@ -64,25 +109,106 @@ export const FormNavigation: React.FC<FormNavigationProps> = ({
         <div className="flex-1 flex justify-end">
           {isLastStep
             ? config.showSubmitButton && (
-                <AnimatedButton
-                  variant="primary"
+                <button
+                  type="button"
                   onClick={onSubmit}
                   disabled={isSubmitting}
-                  className="inline-flex items-center gap-2 px-6 py-2 text-sm font-medium text-white bg-blue-600 border border-transparent rounded-lg hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                  style={{
+                    display: "inline-flex",
+                    alignItems: "center",
+                    gap: "var(--form-spacing-xs, 8px)",
+                    padding: `var(--form-spacing-xs, 8px) var(--form-spacing-lg, 24px)`,
+                    fontSize: "var(--form-font-size-input, 14px)",
+                    fontWeight: "var(--form-font-weight-medium, 500)",
+                    fontFamily:
+                      "var(--form-font-family-primary, Inter, system-ui, sans-serif)",
+                    color: "white",
+                    backgroundColor: isSubmitting
+                      ? "var(--form-color-secondary, #6B7280)"
+                      : "var(--form-color-primary, #3B82F6)",
+                    border: "none",
+                    borderRadius: "var(--form-border-radius, 8px)",
+                    cursor: isSubmitting ? "not-allowed" : "pointer",
+                    opacity: isSubmitting ? "0.5" : "1",
+                    outline: "none",
+                    transition: "all 0.2s ease",
+                  }}
+                  onMouseEnter={(e: React.MouseEvent<HTMLButtonElement>) => {
+                    if (!isSubmitting) {
+                      e.currentTarget.style.backgroundColor =
+                        "var(--form-color-primary-dark, #2563EB)";
+                    }
+                  }}
+                  onMouseLeave={(e: React.MouseEvent<HTMLButtonElement>) => {
+                    if (!isSubmitting) {
+                      e.currentTarget.style.backgroundColor =
+                        "var(--form-color-primary, #3B82F6)";
+                    }
+                  }}
+                  onFocus={(e: React.FocusEvent<HTMLButtonElement>) => {
+                    e.currentTarget.style.outline =
+                      "2px solid var(--form-color-primary, #3B82F6)";
+                    e.currentTarget.style.outlineOffset = "2px";
+                  }}
+                  onBlur={(e: React.FocusEvent<HTMLButtonElement>) => {
+                    e.currentTarget.style.outline = "none";
+                  }}
                 >
                   {isSubmitting ? "Submitting..." : config.buttonLabels.submit}
-                </AnimatedButton>
+                </button>
               )
             : config.showNextButton && (
-                <AnimatedButton
-                  variant="primary"
+                <button
+                  type="button"
                   onClick={onNext}
                   disabled={!canGoNext}
-                  className="inline-flex items-center gap-2 px-4 py-2 text-sm font-medium text-white bg-blue-600 border border-transparent rounded-lg hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                  style={{
+                    display: "inline-flex",
+                    alignItems: "center",
+                    gap: "var(--form-spacing-xs, 8px)",
+                    padding: `var(--form-spacing-xs, 8px) var(--form-spacing-md, 16px)`,
+                    fontSize: "var(--form-font-size-input, 14px)",
+                    fontWeight: "var(--form-font-weight-medium, 500)",
+                    fontFamily:
+                      "var(--form-font-family-primary, Inter, system-ui, sans-serif)",
+                    color: "white",
+                    backgroundColor: !canGoNext
+                      ? "var(--form-color-secondary, #6B7280)"
+                      : "var(--form-color-primary, #3B82F6)",
+                    border: "none",
+                    borderRadius: "var(--form-border-radius, 8px)",
+                    cursor: !canGoNext ? "not-allowed" : "pointer",
+                    opacity: !canGoNext ? "0.5" : "1",
+                    outline: "none",
+                    transition: "all 0.2s ease",
+                  }}
+                  onMouseEnter={(e: React.MouseEvent<HTMLButtonElement>) => {
+                    if (canGoNext) {
+                      e.currentTarget.style.backgroundColor =
+                        "var(--form-color-primary-dark, #2563EB)";
+                    }
+                  }}
+                  onMouseLeave={(e: React.MouseEvent<HTMLButtonElement>) => {
+                    if (!canGoNext) {
+                      e.currentTarget.style.backgroundColor =
+                        "var(--form-color-secondary, #6B7280)";
+                    } else {
+                      e.currentTarget.style.backgroundColor =
+                        "var(--form-color-primary, #3B82F6)";
+                    }
+                  }}
+                  onFocus={(e: React.FocusEvent<HTMLButtonElement>) => {
+                    e.currentTarget.style.outline =
+                      "2px solid var(--form-color-primary, #3B82F6)";
+                    e.currentTarget.style.outlineOffset = "2px";
+                  }}
+                  onBlur={(e: React.FocusEvent<HTMLButtonElement>) => {
+                    e.currentTarget.style.outline = "none";
+                  }}
                 >
                   {config.buttonLabels.next}
                   <ChevronRight className="w-4 h-4" />
-                </AnimatedButton>
+                </button>
               )}
         </div>
       </div>

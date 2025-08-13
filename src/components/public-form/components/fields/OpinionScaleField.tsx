@@ -153,7 +153,10 @@ export const OpinionScaleField: React.FC<OpinionScaleFieldProps> = ({
     >
       <div className="opinion-scale-field space-y-6">
         {/* Scale Labels */}
-        <div className="flex justify-between text-xs text-gray-500 px-2">
+        <div
+          className="flex justify-between text-xs px-2"
+          style={{ color: "var(--form-text-secondary, #6B7280)" }}
+        >
           <span className="flex items-center gap-1">
             <Frown className="w-3 h-3" />
             {minRating} - {getScaleLabel(minRating)}
@@ -174,14 +177,17 @@ export const OpinionScaleField: React.FC<OpinionScaleFieldProps> = ({
           {/* Visual Scale Bar */}
           <div className="relative mb-6">
             {/* Background Bar */}
-            <div className="h-2 bg-gray-200 rounded-full relative overflow-hidden">
+            <div
+              className="h-2 rounded-full relative overflow-hidden"
+              style={{ backgroundColor: "var(--form-border-color, #E5E7EB)" }}
+            >
               {/* Progress Bar */}
               <motion.div
                 className="h-full rounded-full"
                 style={{
                   backgroundColor: displayValue
                     ? getScaleColor(displayValue)
-                    : "#E5E7EB",
+                    : "var(--form-border-color, #E5E7EB)",
                 }}
                 animate={{
                   width: displayValue
@@ -212,18 +218,21 @@ export const OpinionScaleField: React.FC<OpinionScaleFieldProps> = ({
                     onFocus={() => setHoveredValue(value)}
                     onBlur={() => setHoveredValue(null)}
                     onKeyDown={(e) => handleKeyDown(e, value)}
-                    className={`
-                     w-4 h-4 rounded-full border-2 relative
-                     focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2
-                     transition-all duration-200
-                     ${
-                       shouldHighlight
-                         ? "border-white bg-white shadow-md scale-110"
-                         : hasError
-                         ? "border-red-300 bg-white hover:border-red-400"
-                         : "border-gray-400 bg-white hover:border-gray-600"
-                     }
-                   `}
+                    className="w-4 h-4 rounded-full border-2 relative focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-all duration-200"
+                    style={{
+                      borderColor: shouldHighlight
+                        ? "var(--form-background-color, #FFFFFF)"
+                        : hasError
+                        ? "var(--form-color-error, #EF4444)"
+                        : "var(--form-text-secondary, #6B7280)",
+                      backgroundColor: shouldHighlight
+                        ? "var(--form-background-color, #FFFFFF)"
+                        : "var(--form-background-color, #FFFFFF)",
+                      boxShadow: shouldHighlight
+                        ? "0 2px 4px rgba(0,0,0,0.1)"
+                        : "none",
+                      transform: shouldHighlight ? "scale(1.1)" : "scale(1)",
+                    }}
                     whileHover={{ scale: 1.2 }}
                     whileTap={{ scale: 0.9 }}
                     role="radio"
@@ -239,9 +248,19 @@ export const OpinionScaleField: React.FC<OpinionScaleFieldProps> = ({
                           initial={{ scale: 0 }}
                           animate={{ scale: 1 }}
                           exit={{ scale: 0 }}
-                          className="absolute -top-2 -right-2 w-3 h-3 bg-blue-500 rounded-full flex items-center justify-center"
+                          className="absolute -top-2 -right-2 w-3 h-3 rounded-full flex items-center justify-center"
+                          style={{
+                            backgroundColor:
+                              "var(--form-color-primary, #3B82F6)",
+                          }}
                         >
-                          <div className="w-1 h-1 bg-white rounded-full" />
+                          <div
+                            className="w-1 h-1 rounded-full"
+                            style={{
+                              backgroundColor:
+                                "var(--form-background-color, #FFFFFF)",
+                            }}
+                          />
                         </motion.div>
                       )}
                     </AnimatePresence>
@@ -264,17 +283,23 @@ export const OpinionScaleField: React.FC<OpinionScaleFieldProps> = ({
                   onClick={() => handleRatingSelect(value)}
                   onMouseEnter={() => setHoveredValue(value)}
                   onMouseLeave={() => setHoveredValue(null)}
-                  className={`
-                   w-8 h-8 rounded-full text-sm font-medium
-                   transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-blue-500
-                   ${
-                     isSelected || isHovered
-                       ? "bg-blue-600 text-white scale-110"
-                       : hasError
-                       ? "bg-red-100 text-red-600 hover:bg-red-200"
-                       : "bg-gray-100 text-gray-700 hover:bg-gray-200"
-                   }
-                 `}
+                  className="w-8 h-8 rounded-full text-sm font-medium transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  style={{
+                    backgroundColor:
+                      isSelected || isHovered
+                        ? "var(--form-color-primary, #3B82F6)"
+                        : hasError
+                        ? "var(--form-color-error-background, #FEF2F2)"
+                        : "var(--form-background-secondary, #F3F4F6)",
+                    color:
+                      isSelected || isHovered
+                        ? "var(--form-background-color, #FFFFFF)"
+                        : hasError
+                        ? "var(--form-color-error, #EF4444)"
+                        : "var(--form-text-color, #1F2937)",
+                    transform:
+                      isSelected || isHovered ? "scale(1.1)" : "scale(1)",
+                  }}
                   whileHover={{ scale: 1.1 }}
                   whileTap={{ scale: 0.95 }}
                   role="radio"
@@ -294,16 +319,27 @@ export const OpinionScaleField: React.FC<OpinionScaleFieldProps> = ({
               initial={{ opacity: 0, y: 10 }}
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: -10 }}
-              className="text-center bg-gray-50 rounded-lg p-4"
+              className="text-center rounded-lg p-4"
+              style={{
+                backgroundColor: "var(--form-background-secondary, #F9FAFB)",
+              }}
             >
               <div className="flex items-center justify-center gap-2 mb-2">
-                {getEmotionIcon(displayValue)}
-                <span className="text-lg font-semibold text-gray-900">
+                <span style={{ color: "var(--form-text-secondary, #6B7280)" }}>
+                  {getEmotionIcon(displayValue)}
+                </span>
+                <span
+                  className="text-lg font-semibold"
+                  style={{ color: "var(--form-text-color, #1F2937)" }}
+                >
                   {displayValue} out of {maxRating}
                 </span>
               </div>
               {getScaleLabel(displayValue) && (
-                <div className="text-sm text-gray-600">
+                <div
+                  className="text-sm"
+                  style={{ color: "var(--form-text-secondary, #6B7280)" }}
+                >
                   {getScaleLabel(displayValue)}
                 </div>
               )}
@@ -315,7 +351,8 @@ export const OpinionScaleField: React.FC<OpinionScaleFieldProps> = ({
         <AnimatedErrorMessage isVisible={hasError}>
           <div
             id={`error-${field.id}`}
-            className="flex items-start gap-2 text-sm text-red-600"
+            className="flex items-start gap-2 text-sm"
+            style={{ color: "var(--form-color-error, #EF4444)" }}
             role="alert"
             aria-live="polite"
           >

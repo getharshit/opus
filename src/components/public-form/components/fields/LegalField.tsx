@@ -101,17 +101,35 @@ export const LegalField: React.FC<LegalFieldProps> = ({
     >
       <div className="legal-field space-y-4">
         {/* Terms and Conditions Container */}
-        <div className="terms-container bg-white border-2 border-gray-200 rounded-lg overflow-hidden">
+        <div
+          className="terms-container border-2 rounded-lg overflow-hidden"
+          style={{
+            backgroundColor: "var(--form-background-color, #FFFFFF)",
+            borderColor: "var(--form-border-color, #E5E7EB)",
+          }}
+        >
           {/* Terms Header */}
-          <div className="terms-header bg-gray-50 px-4 py-3 border-b border-gray-200">
+          <div
+            className="terms-header px-4 py-3 border-b"
+            style={{
+              backgroundColor: "var(--form-background-secondary, #F9FAFB)",
+              borderBottomColor: "var(--form-border-color, #E5E7EB)",
+            }}
+          >
             <button
               type="button"
               onClick={() => setIsTermsExpanded(!isTermsExpanded)}
               className="w-full flex items-center justify-between text-left focus:outline-none focus:ring-2 focus:ring-blue-500 rounded"
             >
               <div className="flex items-center gap-2">
-                <FileText className="w-5 h-5 text-gray-600" />
-                <span className="font-medium text-gray-900">
+                <FileText
+                  className="w-5 h-5"
+                  style={{ color: "var(--form-text-secondary, #6B7280)" }}
+                />
+                <span
+                  className="font-medium"
+                  style={{ color: "var(--form-text-color, #1F2937)" }}
+                >
                   {field.displayOptions?.termsTitle || "Terms and Conditions"}
                 </span>
               </div>
@@ -119,7 +137,10 @@ export const LegalField: React.FC<LegalFieldProps> = ({
                 animate={{ rotate: isTermsExpanded ? 180 : 0 }}
                 transition={{ duration: 0.2 }}
               >
-                <ChevronDown className="w-5 h-5 text-gray-400" />
+                <ChevronDown
+                  className="w-5 h-5"
+                  style={{ color: "var(--form-text-secondary, #6B7280)" }}
+                />
               </motion.div>
             </button>
           </div>
@@ -136,7 +157,8 @@ export const LegalField: React.FC<LegalFieldProps> = ({
               >
                 <div
                   ref={termsRef}
-                  className="terms-content max-h-64 overflow-y-auto p-4 text-sm text-gray-700 leading-relaxed"
+                  className="terms-content max-h-64 overflow-y-auto p-4 text-sm leading-relaxed"
+                  style={{ color: "var(--form-text-color, #374151)" }}
                   role="region"
                   aria-label="Terms and conditions content"
                   tabIndex={0}
@@ -167,7 +189,18 @@ export const LegalField: React.FC<LegalFieldProps> = ({
                           href={link.url}
                           target="_blank"
                           rel="noopener noreferrer"
-                          className="inline-flex items-center gap-1 text-blue-600 hover:text-blue-700 underline"
+                          className="inline-flex items-center gap-1 underline transition-colors"
+                          style={{
+                            color: "var(--form-color-primary, #3B82F6)",
+                          }}
+                          onMouseEnter={(e) => {
+                            e.currentTarget.style.color =
+                              "var(--form-color-primary-hover, #2563EB)";
+                          }}
+                          onMouseLeave={(e) => {
+                            e.currentTarget.style.color =
+                              "var(--form-color-primary, #3B82F6)";
+                          }}
                         >
                           {link.text}
                           <ExternalLink className="w-3 h-3" />
@@ -179,8 +212,16 @@ export const LegalField: React.FC<LegalFieldProps> = ({
 
                 {/* Scroll Indicator */}
                 {requiresScrollToAccept && !hasScrolledToBottom && (
-                  <div className="bg-yellow-50 border-t border-yellow-200 px-4 py-2">
-                    <div className="flex items-center gap-2 text-yellow-700 text-xs">
+                  <div
+                    className="border-t px-4 py-2"
+                    style={{
+                      backgroundColor:
+                        "var(--form-color-warning-background, #FFFBEB)",
+                      borderTopColor: "var(--form-color-warning, #F59E0B)",
+                      color: "var(--form-color-warning-text, #92400E)",
+                    }}
+                  >
+                    <div className="flex items-center gap-2 text-xs">
                       <ChevronDown className="w-3 h-3 animate-bounce" />
                       <span>Please scroll to the bottom to continue</span>
                     </div>
@@ -202,13 +243,6 @@ export const LegalField: React.FC<LegalFieldProps> = ({
               flex items-start gap-3 p-4 rounded-lg border-2 cursor-pointer
               transition-all duration-200 group
               ${
-                isAccepted
-                  ? "border-green-500 bg-green-50"
-                  : hasError
-                  ? "border-red-500 bg-red-50"
-                  : "border-gray-200 hover:border-gray-300 hover:bg-gray-50"
-              }
-              ${
                 !requiresScrollToAccept ||
                 hasScrolledToBottom ||
                 !isTermsExpanded
@@ -216,6 +250,18 @@ export const LegalField: React.FC<LegalFieldProps> = ({
                   : "cursor-not-allowed opacity-50"
               }
             `}
+            style={{
+              borderColor: isAccepted
+                ? "var(--form-color-success, #10B981)"
+                : hasError
+                ? "var(--form-color-error, #EF4444)"
+                : "var(--form-border-color, #E5E7EB)",
+              backgroundColor: isAccepted
+                ? "var(--form-color-success-background, #F0FDF4)"
+                : hasError
+                ? "var(--form-color-error-background, #FEF2F2)"
+                : "var(--form-background-color, #FFFFFF)",
+            }}
             whileHover={{
               scale:
                 !requiresScrollToAccept ||
@@ -260,23 +306,26 @@ export const LegalField: React.FC<LegalFieldProps> = ({
               />
 
               <motion.div
-                className={`
-                  w-5 h-5 rounded border-2 flex items-center justify-center
-                  ${
-                    isAccepted
-                      ? "border-green-500 bg-green-500"
-                      : hasError
-                      ? "border-red-500"
-                      : "border-gray-300 group-hover:border-gray-400"
-                  }
-                `}
+                className="w-5 h-5 rounded border-2 flex items-center justify-center"
+                style={{
+                  borderColor: isAccepted
+                    ? "var(--form-color-success, #10B981)"
+                    : hasError
+                    ? "var(--form-color-error, #EF4444)"
+                    : "var(--form-border-color, #D1D5DB)",
+                  backgroundColor: isAccepted
+                    ? "var(--form-color-success, #10B981)"
+                    : "transparent",
+                }}
                 animate={{
                   borderColor: isAccepted
-                    ? "#10B981"
+                    ? "var(--form-color-success, #10B981)"
                     : hasError
-                    ? "#EF4444"
-                    : "#D1D5DB",
-                  backgroundColor: isAccepted ? "#10B981" : "transparent",
+                    ? "var(--form-color-error, #EF4444)"
+                    : "var(--form-border-color, #D1D5DB)",
+                  backgroundColor: isAccepted
+                    ? "var(--form-color-success, #10B981)"
+                    : "transparent",
                 }}
                 transition={{ duration: 0.2 }}
               >
@@ -288,7 +337,7 @@ export const LegalField: React.FC<LegalFieldProps> = ({
                       exit={{ scale: 0 }}
                       transition={{ duration: 0.15 }}
                     >
-                      <Check className="w-3 h-3 text-gray-900 placeholder-gray-500" />
+                      <Check className="w-3 h-3 text-white" />
                     </motion.div>
                   )}
                 </AnimatePresence>
@@ -298,23 +347,32 @@ export const LegalField: React.FC<LegalFieldProps> = ({
             {/* Acceptance Text */}
             <div className="flex-1">
               <span
-                className={`
-                text-sm leading-relaxed
-                ${isAccepted ? "text-green-700" : "text-gray-700"}
-              `}
+                className="text-sm leading-relaxed"
+                style={{
+                  color: isAccepted
+                    ? "var(--form-color-success, #10B981)"
+                    : "var(--form-text-color, #1F2937)",
+                }}
               >
                 {field.label ||
                   "I have read and agree to the terms and conditions"}
               </span>
 
               {field.required && (
-                <span className="text-red-500 ml-1" aria-label="Required">
+                <span
+                  className="ml-1"
+                  style={{ color: "var(--form-color-error, #EF4444)" }}
+                  aria-label="Required"
+                >
                   *
                 </span>
               )}
 
               {field.helpText && (
-                <div className="mt-1 text-xs text-gray-500">
+                <div
+                  className="mt-1 text-xs"
+                  style={{ color: "var(--form-text-secondary, #6B7280)" }}
+                >
                   {field.helpText}
                 </div>
               )}
@@ -327,9 +385,16 @@ export const LegalField: React.FC<LegalFieldProps> = ({
           <motion.div
             initial={{ opacity: 0, scale: 0.95 }}
             animate={{ opacity: 1, scale: 1 }}
-            className="bg-amber-50 border border-amber-200 rounded-lg p-3"
+            className="border rounded-lg p-3"
+            style={{
+              backgroundColor: "var(--form-color-warning-background, #FFFBEB)",
+              borderColor: "var(--form-color-warning, #F59E0B)",
+            }}
           >
-            <div className="flex items-center gap-2 text-amber-700 text-sm">
+            <div
+              className="flex items-center gap-2 text-sm"
+              style={{ color: "var(--form-color-warning-text, #92400E)" }}
+            >
               <AlertCircle className="w-4 h-4 flex-shrink-0" />
               <span>
                 Please read the complete terms by scrolling to the bottom before
@@ -343,7 +408,8 @@ export const LegalField: React.FC<LegalFieldProps> = ({
         <AnimatedErrorMessage isVisible={hasError}>
           <div
             id={`error-${field.id}`}
-            className="flex items-start gap-2 text-sm text-red-600"
+            className="flex items-start gap-2 text-sm"
+            style={{ color: "var(--form-color-error, #EF4444)" }}
             role="alert"
             aria-live="polite"
           >

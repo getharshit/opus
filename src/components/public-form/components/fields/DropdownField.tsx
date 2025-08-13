@@ -161,16 +161,32 @@ export const DropdownField: React.FC<DropdownFieldProps> = ({
             onKeyDown={handleKeyDown}
             className={`
               w-full px-4 py-3 text-left border-2 rounded-lg flex items-center justify-between
-              focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent
+              focus:outline-none focus:ring-2 focus:border-transparent
               transition-colors duration-200
-              ${
-                isOpen
-                  ? "border-blue-500 bg-blue-50"
-                  : hasError
-                  ? "border-red-500 bg-red-50"
-                  : "border-gray-300 hover:border-gray-400 bg-white"
-              }
+              ${isOpen ? "ring-2" : "focus:ring-2"}
             `}
+            style={
+              {
+                borderColor: isOpen
+                  ? "var(--form-color-primary, #3B82F6)"
+                  : hasError
+                  ? "var(--form-color-error, #EF4444)"
+                  : "var(--form-border-color, #D1D5DB)",
+                backgroundColor: isOpen
+                  ? "var(--form-color-primary-background, #EFF6FF)"
+                  : hasError
+                  ? "var(--form-color-error-background, #FEF2F2)"
+                  : "var(--form-background-color, #FFFFFF)",
+                color: selectedOption
+                  ? "var(--form-text-color, #1F2937)"
+                  : "var(--form-text-secondary, #6B7280)",
+                "--tw-ring-color": isOpen
+                  ? "var(--form-color-primary, #3B82F6)"
+                  : hasError
+                  ? "var(--form-color-error, #EF4444)"
+                  : "var(--form-color-primary, #3B82F6)",
+              } as React.CSSProperties
+            }
             whileHover={{ scale: 1.01 }}
             whileTap={{ scale: 0.99 }}
             aria-haspopup="listbox"
@@ -178,11 +194,7 @@ export const DropdownField: React.FC<DropdownFieldProps> = ({
             aria-labelledby={`question-${field.id}`}
             aria-describedby={hasError ? `error-${field.id}` : undefined}
           >
-            <span
-              className={`
-              ${selectedOption ? "text-gray-900" : "text-gray-500"}
-            `}
-            >
+            <span>
               {selectedOption || field.placeholder || "Select an option..."}
             </span>
 
@@ -190,7 +202,10 @@ export const DropdownField: React.FC<DropdownFieldProps> = ({
               animate={{ rotate: isOpen ? 180 : 0 }}
               transition={{ duration: 0.2 }}
             >
-              <ChevronDown className="w-5 h-5 text-gray-400" />
+              <ChevronDown
+                className="w-5 h-5"
+                style={{ color: "var(--form-text-secondary, #6B7280)" }}
+              />
             </motion.div>
           </motion.button>
 
@@ -202,13 +217,26 @@ export const DropdownField: React.FC<DropdownFieldProps> = ({
                 animate={{ opacity: 1, y: 0, scale: 1 }}
                 exit={{ opacity: 0, y: -10, scale: 0.95 }}
                 transition={{ duration: 0.15 }}
-                className="absolute top-full left-0 right-0 mt-1 bg-white border border-gray-200 rounded-lg shadow-lg z-50 max-h-60 overflow-hidden"
+                className="absolute top-full left-0 right-0 mt-1 rounded-lg shadow-lg z-50 max-h-60 overflow-hidden"
+                style={{
+                  backgroundColor: "var(--form-background-color, #FFFFFF)",
+                  border: "1px solid var(--form-border-color, #E5E7EB)",
+                }}
               >
                 {/* Search Input */}
                 {isSearchable && (
-                  <div className="p-3 border-b border-gray-100">
+                  <div
+                    className="p-3"
+                    style={{
+                      borderBottom:
+                        "1px solid var(--form-border-color, #F3F4F6)",
+                    }}
+                  >
                     <div className="relative">
-                      <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" />
+                      <Search
+                        className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4"
+                        style={{ color: "var(--form-text-secondary, #6B7280)" }}
+                      />
                       <input
                         ref={searchInputRef}
                         type="text"
@@ -218,7 +246,17 @@ export const DropdownField: React.FC<DropdownFieldProps> = ({
                           setSearchTerm(e.target.value);
                           setFocusedIndex(-1);
                         }}
-                        className="w-full pl-10 pr-3 py-2 border border-gray-200 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm"
+                        className="w-full pl-10 pr-3 py-2 border rounded-md focus:ring-2 focus:border-transparent text-sm"
+                        style={
+                          {
+                            borderColor: "var(--form-border-color, #E5E7EB)",
+                            backgroundColor:
+                              "var(--form-background-color, #FFFFFF)",
+                            color: "var(--form-text-color, #1F2937)",
+                            "--tw-ring-color":
+                              "var(--form-color-primary, #3B82F6)",
+                          } as React.CSSProperties
+                        }
                       />
                     </div>
                   </div>
@@ -231,7 +269,10 @@ export const DropdownField: React.FC<DropdownFieldProps> = ({
                   aria-labelledby={`question-${field.id}`}
                 >
                   {filteredOptions.length === 0 ? (
-                    <div className="px-3 py-2 text-gray-500 text-sm">
+                    <div
+                      className="px-3 py-2 text-sm"
+                      style={{ color: "var(--form-text-secondary, #6B7280)" }}
+                    >
                       No options found
                     </div>
                   ) : (
@@ -247,14 +288,19 @@ export const DropdownField: React.FC<DropdownFieldProps> = ({
                           className={`
                             w-full px-3 py-2 text-left flex items-center justify-between
                             transition-colors duration-150
-                            ${
-                              isFocused
-                                ? "bg-blue-50 text-blue-700"
-                                : isSelected
-                                ? "bg-blue-100 text-blue-800"
-                                : "hover:bg-gray-50 text-gray-700"
-                            }
                           `}
+                          style={{
+                            backgroundColor: isFocused
+                              ? "var(--form-color-primary-background, #EFF6FF)"
+                              : isSelected
+                              ? "var(--form-color-primary-light, #DBEAFE)"
+                              : "transparent",
+                            color: isFocused
+                              ? "var(--form-color-primary, #3B82F6)"
+                              : isSelected
+                              ? "var(--form-color-primary, #3B82F6)"
+                              : "var(--form-text-color, #1F2937)",
+                          }}
                           initial={{ opacity: 0 }}
                           animate={{ opacity: 1 }}
                           transition={{
@@ -275,7 +321,12 @@ export const DropdownField: React.FC<DropdownFieldProps> = ({
                                 exit={{ scale: 0 }}
                                 transition={{ duration: 0.15 }}
                               >
-                                <Check className="w-4 h-4 text-blue-600" />
+                                <Check
+                                  className="w-4 h-4"
+                                  style={{
+                                    color: "var(--form-color-primary, #3B82F6)",
+                                  }}
+                                />
                               </motion.div>
                             )}
                           </AnimatePresence>
@@ -293,7 +344,8 @@ export const DropdownField: React.FC<DropdownFieldProps> = ({
         <AnimatedErrorMessage isVisible={hasError}>
           <div
             id={`error-${field.id}`}
-            className="flex items-start gap-2 text-sm text-red-600"
+            className="flex items-start gap-2 text-sm"
+            style={{ color: "var(--form-color-error, #EF4444)" }}
             role="alert"
             aria-live="polite"
           >

@@ -54,7 +54,12 @@ export const YesNoField: React.FC<YesNoFieldProps> = ({
     <div className="toggle-container flex items-center justify-center">
       <div className="flex items-center gap-4">
         {/* No Label */}
-        <span className="text-sm font-medium text-gray-700">No</span>
+        <span
+          className="text-sm font-medium"
+          style={{ color: "var(--form-text-color, #1F2937)" }}
+        >
+          No
+        </span>
 
         {/* Toggle Switch */}
         <motion.button
@@ -62,23 +67,29 @@ export const YesNoField: React.FC<YesNoFieldProps> = ({
           onClick={() =>
             handleSelection(controllerField.value === "yes" ? "no" : "yes")
           }
-          className={`
-            relative w-14 h-7 rounded-full border-2 focus:outline-none focus:ring-2 focus:ring-blue-500
-            ${
-              controllerField.value === "yes"
-                ? "bg-green-500 border-green-500"
-                : "bg-gray-200 border-gray-300"
-            }
-          `}
+          className="relative w-14 h-7 rounded-full border-2 focus:outline-none focus:ring-2"
+          style={
+            {
+              backgroundColor:
+                controllerField.value === "yes"
+                  ? "var(--form-color-success, #10B981)"
+                  : "var(--form-border-color, #E5E7EB)",
+              borderColor:
+                controllerField.value === "yes"
+                  ? "var(--form-color-success, #10B981)"
+                  : "var(--form-border-color, #D1D5DB)",
+              "--tw-ring-color": "var(--form-color-primary, #3B82F6)",
+            } as React.CSSProperties
+          }
           whileTap={{ scale: 0.95 }}
           aria-pressed={controllerField.value === "yes"}
           aria-labelledby={`question-${field.id}`}
         >
           <motion.div
-            className={`
-              absolute top-0.5 w-5 h-5 rounded-full shadow-md flex items-center justify-center
-              ${controllerField.value === "yes" ? "bg-white" : "bg-white"}
-            `}
+            className="absolute top-0.5 w-5 h-5 rounded-full shadow-md flex items-center justify-center"
+            style={{
+              backgroundColor: "var(--form-background-color, #FFFFFF)",
+            }}
             animate={{
               x: controllerField.value === "yes" ? 28 : 2,
             }}
@@ -89,15 +100,26 @@ export const YesNoField: React.FC<YesNoFieldProps> = ({
             }}
           >
             {controllerField.value === "yes" ? (
-              <Check className="w-3 h-3 text-green-500" />
+              <Check
+                className="w-3 h-3"
+                style={{ color: "var(--form-color-success, #10B981)" }}
+              />
             ) : (
-              <X className="w-3 h-3 text-gray-400" />
+              <X
+                className="w-3 h-3"
+                style={{ color: "var(--form-text-secondary, #6B7280)" }}
+              />
             )}
           </motion.div>
         </motion.button>
 
         {/* Yes Label */}
-        <span className="text-sm font-medium text-gray-700">Yes</span>
+        <span
+          className="text-sm font-medium"
+          style={{ color: "var(--form-text-color, #1F2937)" }}
+        >
+          Yes
+        </span>
       </div>
     </div>
   );
@@ -116,14 +138,28 @@ export const YesNoField: React.FC<YesNoFieldProps> = ({
         className={`
           flex-1 py-4 px-6 rounded-lg border-2 font-medium text-center
           transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2
-          ${
-            controllerField.value === "yes"
-              ? "border-green-500 bg-green-50 text-green-700 focus:ring-green-500"
-              : hasError
-              ? "border-red-300 text-red-600 hover:border-red-400 focus:ring-red-500"
-              : "border-gray-300 text-gray-700 hover:border-green-400 hover:bg-green-50 focus:ring-green-500"
-          }
         `}
+        style={
+          {
+            borderColor:
+              controllerField.value === "yes"
+                ? "var(--form-color-success, #10B981)"
+                : hasError
+                ? "var(--form-color-error, #EF4444)"
+                : "var(--form-border-color, #D1D5DB)",
+            backgroundColor:
+              controllerField.value === "yes"
+                ? "var(--form-color-success-background, #F0FDF4)"
+                : "var(--form-background-color, #FFFFFF)",
+            color:
+              controllerField.value === "yes"
+                ? "var(--form-color-success, #10B981)"
+                : hasError
+                ? "var(--form-color-error, #EF4444)"
+                : "var(--form-text-color, #1F2937)",
+            "--tw-ring-color": "var(--form-color-success, #10B981)",
+          } as React.CSSProperties
+        }
         whileHover={{ scale: 1.02 }}
         whileTap={{ scale: 0.98 }}
         role="radio"
@@ -131,19 +167,26 @@ export const YesNoField: React.FC<YesNoFieldProps> = ({
       >
         <div className="flex items-center justify-center gap-2">
           <motion.div
-            className={`
-              w-5 h-5 rounded-full border-2 flex items-center justify-center
-              ${
+            className="w-5 h-5 rounded-full border-2 flex items-center justify-center"
+            style={{
+              borderColor:
                 controllerField.value === "yes"
-                  ? "border-green-500 bg-green-500"
-                  : "border-gray-300"
-              }
-            `}
+                  ? "var(--form-color-success, #10B981)"
+                  : "var(--form-border-color, #D1D5DB)",
+              backgroundColor:
+                controllerField.value === "yes"
+                  ? "var(--form-color-success, #10B981)"
+                  : "transparent",
+            }}
             animate={{
               borderColor:
-                controllerField.value === "yes" ? "#10B981" : "#D1D5DB",
+                controllerField.value === "yes"
+                  ? "var(--form-color-success, #10B981)"
+                  : "var(--form-border-color, #D1D5DB)",
               backgroundColor:
-                controllerField.value === "yes" ? "#10B981" : "transparent",
+                controllerField.value === "yes"
+                  ? "var(--form-color-success, #10B981)"
+                  : "transparent",
             }}
           >
             {controllerField.value === "yes" && (
@@ -152,7 +195,7 @@ export const YesNoField: React.FC<YesNoFieldProps> = ({
                 animate={{ scale: 1 }}
                 transition={{ duration: 0.15 }}
               >
-                <Check className="w-3 h-3 text-gray-900 placeholder-gray-500" />
+                <Check className="w-3 h-3 text-white" />
               </motion.div>
             )}
           </motion.div>
@@ -168,14 +211,28 @@ export const YesNoField: React.FC<YesNoFieldProps> = ({
         className={`
           flex-1 py-4 px-6 rounded-lg border-2 font-medium text-center
           transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2
-          ${
-            controllerField.value === "no"
-              ? "border-red-500 bg-red-50 text-red-700 focus:ring-red-500"
-              : hasError
-              ? "border-red-300 text-red-600 hover:border-red-400 focus:ring-red-500"
-              : "border-gray-300 text-gray-700 hover:border-red-400 hover:bg-red-50 focus:ring-red-500"
-          }
         `}
+        style={
+          {
+            borderColor:
+              controllerField.value === "no"
+                ? "var(--form-color-error, #EF4444)"
+                : hasError
+                ? "var(--form-color-error, #EF4444)"
+                : "var(--form-border-color, #D1D5DB)",
+            backgroundColor:
+              controllerField.value === "no"
+                ? "var(--form-color-error-background, #FEF2F2)"
+                : "var(--form-background-color, #FFFFFF)",
+            color:
+              controllerField.value === "no"
+                ? "var(--form-color-error, #EF4444)"
+                : hasError
+                ? "var(--form-color-error, #EF4444)"
+                : "var(--form-text-color, #1F2937)",
+            "--tw-ring-color": "var(--form-color-error, #EF4444)",
+          } as React.CSSProperties
+        }
         whileHover={{ scale: 1.02 }}
         whileTap={{ scale: 0.98 }}
         role="radio"
@@ -183,19 +240,26 @@ export const YesNoField: React.FC<YesNoFieldProps> = ({
       >
         <div className="flex items-center justify-center gap-2">
           <motion.div
-            className={`
-              w-5 h-5 rounded-full border-2 flex items-center justify-center
-              ${
+            className="w-5 h-5 rounded-full border-2 flex items-center justify-center"
+            style={{
+              borderColor:
                 controllerField.value === "no"
-                  ? "border-red-500 bg-red-500"
-                  : "border-gray-300"
-              }
-            `}
+                  ? "var(--form-color-error, #EF4444)"
+                  : "var(--form-border-color, #D1D5DB)",
+              backgroundColor:
+                controllerField.value === "no"
+                  ? "var(--form-color-error, #EF4444)"
+                  : "transparent",
+            }}
             animate={{
               borderColor:
-                controllerField.value === "no" ? "#EF4444" : "#D1D5DB",
+                controllerField.value === "no"
+                  ? "var(--form-color-error, #EF4444)"
+                  : "var(--form-border-color, #D1D5DB)",
               backgroundColor:
-                controllerField.value === "no" ? "#EF4444" : "transparent",
+                controllerField.value === "no"
+                  ? "var(--form-color-error, #EF4444)"
+                  : "transparent",
             }}
           >
             {controllerField.value === "no" && (
@@ -204,7 +268,7 @@ export const YesNoField: React.FC<YesNoFieldProps> = ({
                 animate={{ scale: 1 }}
                 transition={{ duration: 0.15 }}
               >
-                <X className="w-3 h-3 text-gray-900 placeholder-gray-500" />
+                <X className="w-3 h-3 text-white" />
               </motion.div>
             )}
           </motion.div>
@@ -229,7 +293,8 @@ export const YesNoField: React.FC<YesNoFieldProps> = ({
         <AnimatedErrorMessage isVisible={hasError}>
           <div
             id={`error-${field.id}`}
-            className="flex items-start gap-2 text-sm text-red-600"
+            className="flex items-start gap-2 text-sm"
+            style={{ color: "var(--form-color-error, #EF4444)" }}
             role="alert"
             aria-live="polite"
           >

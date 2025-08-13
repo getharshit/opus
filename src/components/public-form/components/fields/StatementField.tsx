@@ -40,11 +40,42 @@ export const StatementField: React.FC<StatementFieldProps> = ({
     // Basic rich text rendering - in production, you might want to use a library like DOMPurify
     return (
       <div
-        className="prose prose-sm max-w-none text-gray-700 leading-relaxed"
+        className="prose prose-sm max-w-none leading-relaxed"
+        style={{ color: "var(--form-text-color, #374151)" }}
         dangerouslySetInnerHTML={{ __html: content }}
       />
     );
   };
+
+  // Get variant-specific styles
+  const getVariantStyles = () => {
+    const variant = field.displayOptions?.variant;
+
+    switch (variant) {
+      case "highlighted":
+        return {
+          backgroundColor: "var(--form-color-warning-background, #FFFBEB)",
+          borderColor: "var(--form-color-warning, #F59E0B)",
+        };
+      case "info":
+        return {
+          backgroundColor: "var(--form-color-primary-background, #EFF6FF)",
+          borderColor: "var(--form-color-primary, #3B82F6)",
+        };
+      case "warning":
+        return {
+          backgroundColor: "var(--form-color-error-background, #FEF2F2)",
+          borderColor: "var(--form-color-error, #EF4444)",
+        };
+      default:
+        return {
+          backgroundColor: "var(--form-background-secondary, #F8FAFC)",
+          borderColor: "var(--form-border-color, #E2E8F0)",
+        };
+    }
+  };
+
+  const variantStyles = getVariantStyles();
 
   return (
     <QuestionContainer
@@ -61,25 +92,11 @@ export const StatementField: React.FC<StatementFieldProps> = ({
       >
         {/* Statement Card */}
         <div
-          className={`
-          bg-gradient-to-br from-blue-50 to-indigo-50 border border-blue-200 
-          rounded-xl p-6 shadow-sm
-          ${
-            field.displayOptions?.variant === "highlighted"
-              ? "bg-yellow-50 border-yellow-200"
-              : ""
-          }
-          ${
-            field.displayOptions?.variant === "info"
-              ? "bg-blue-50 border-blue-200"
-              : ""
-          }
-          ${
-            field.displayOptions?.variant === "warning"
-              ? "bg-orange-50 border-orange-200"
-              : ""
-          }
-        `}
+          className="border rounded-xl p-6 shadow-sm"
+          style={{
+            backgroundColor: variantStyles.backgroundColor,
+            borderColor: variantStyles.borderColor,
+          }}
         >
           {/* Image Display */}
           {hasImage && (
@@ -90,8 +107,16 @@ export const StatementField: React.FC<StatementFieldProps> = ({
               className="mb-6"
             >
               {imageLoading && (
-                <div className="w-full h-48 bg-gray-200 rounded-lg animate-pulse flex items-center justify-center">
-                  <Image className="w-8 h-8 text-gray-400" />
+                <div
+                  className="w-full h-48 rounded-lg animate-pulse flex items-center justify-center"
+                  style={{
+                    backgroundColor: "var(--form-border-color, #E5E7EB)",
+                  }}
+                >
+                  <Image
+                    className="w-8 h-8"
+                    style={{ color: "var(--form-text-secondary, #6B7280)" }}
+                  />
                 </div>
               )}
 
@@ -107,7 +132,14 @@ export const StatementField: React.FC<StatementFieldProps> = ({
                   `}
                 />
               ) : (
-                <div className="w-full h-48 bg-gray-100 rounded-lg flex items-center justify-center text-gray-500">
+                <div
+                  className="w-full h-48 rounded-lg flex items-center justify-center"
+                  style={{
+                    backgroundColor:
+                      "var(--form-background-secondary, #F3F4F6)",
+                    color: "var(--form-text-secondary, #6B7280)",
+                  }}
+                >
                   <div className="text-center">
                     <Image className="w-8 h-8 mx-auto mb-2" />
                     <p className="text-sm">{imageError}</p>
@@ -137,7 +169,12 @@ export const StatementField: React.FC<StatementFieldProps> = ({
 
                       {/* Fade overlay when collapsed */}
                       {!isExpanded && (
-                        <div className="absolute bottom-0 left-0 right-0 h-8 bg-gradient-to-t from-blue-50 to-transparent" />
+                        <div
+                          className="absolute bottom-0 left-0 right-0 h-8"
+                          style={{
+                            background: `linear-gradient(to top, ${variantStyles.backgroundColor}, transparent)`,
+                          }}
+                        />
                       )}
                     </motion.div>
 
@@ -145,7 +182,18 @@ export const StatementField: React.FC<StatementFieldProps> = ({
                     <motion.button
                       type="button"
                       onClick={() => setIsExpanded(!isExpanded)}
-                      className="flex items-center gap-2 text-blue-600 hover:text-blue-700 font-medium text-sm transition-colors"
+                      className="flex items-center gap-2 font-medium text-sm transition-colors"
+                      style={{
+                        color: "var(--form-color-primary, #3B82F6)",
+                      }}
+                      onMouseEnter={(e) => {
+                        e.currentTarget.style.color =
+                          "var(--form-color-primary-hover, #2563EB)";
+                      }}
+                      onMouseLeave={(e) => {
+                        e.currentTarget.style.color =
+                          "var(--form-color-primary, #3B82F6)";
+                      }}
                       whileHover={{ scale: 1.02 }}
                       whileTap={{ scale: 0.98 }}
                     >
@@ -183,7 +231,19 @@ export const StatementField: React.FC<StatementFieldProps> = ({
                       href={link.url}
                       target={link.external ? "_blank" : "_self"}
                       rel={link.external ? "noopener noreferrer" : undefined}
-                      className="inline-flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors text-sm font-medium"
+                      className="inline-flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-colors"
+                      style={{
+                        backgroundColor: "var(--form-color-primary, #3B82F6)",
+                        color: "var(--form-background-color, #FFFFFF)",
+                      }}
+                      onMouseEnter={(e) => {
+                        e.currentTarget.style.backgroundColor =
+                          "var(--form-color-primary-hover, #2563EB)";
+                      }}
+                      onMouseLeave={(e) => {
+                        e.currentTarget.style.backgroundColor =
+                          "var(--form-color-primary, #3B82F6)";
+                      }}
                     >
                       {link.text}
                       {link.external && <ExternalLink className="w-3 h-3" />}

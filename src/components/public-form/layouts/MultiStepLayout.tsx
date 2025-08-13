@@ -216,11 +216,28 @@ export const MultiStepLayout: React.FC<MultiStepLayoutProps> = ({
           initial={{ opacity: 0, y: -50 }}
           animate={{ opacity: 1, y: 0 }}
           exit={{ opacity: 0, y: -50 }}
-          className="fixed top-4 right-4 bg-blue-600 text-white px-4 py-3 rounded-lg shadow-lg z-50"
+          className="fixed top-4 right-4 px-4 py-3 rounded-lg shadow-lg z-50"
+          style={{
+            backgroundColor: "var(--form-color-primary, #3b82f6)",
+            color: "var(--form-color-text-inverse, #ffffff)",
+            borderRadius: "var(--form-border-radius-lg, 0.75rem)",
+            boxShadow:
+              "var(--form-shadow-lg, 0 10px 15px -3px rgb(0 0 0 / 0.1))",
+            zIndex: "var(--form-z-index-toast, 1000)",
+          }}
         >
-          <div className="flex items-center gap-2">
+          <div
+            className="flex items-center"
+            style={{ gap: "var(--form-spacing-xs, 0.5rem)" }}
+          >
             <CheckCircle className="w-5 h-5" />
-            <span className="text-sm font-medium">
+            <span
+              className="font-medium"
+              style={{
+                fontSize: "var(--form-font-size-sm, 0.875rem)",
+                fontWeight: "var(--form-font-weight-medium, 500)",
+              }}
+            >
               Progress restored from previous session
             </span>
           </div>
@@ -237,29 +254,73 @@ export const MultiStepLayout: React.FC<MultiStepLayoutProps> = ({
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
-          className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4"
+          className="fixed inset-0 z-50 flex items-center justify-center p-4"
+          style={{
+            backgroundColor: "var(--form-color-overlay, rgba(0, 0, 0, 0.5))",
+            zIndex: "var(--form-z-index-modal, 1000)",
+            padding: "var(--form-spacing-md, 1rem)",
+          }}
         >
           <motion.div
             initial={{ scale: 0.9, opacity: 0 }}
             animate={{ scale: 1, opacity: 1 }}
             exit={{ scale: 0.9, opacity: 0 }}
-            className="bg-white rounded-xl p-6 max-w-md w-full shadow-xl"
+            className="max-w-md w-full shadow-xl"
+            style={{
+              backgroundColor: "var(--form-color-surface, #ffffff)",
+              borderRadius: "var(--form-border-radius-xl, 1rem)",
+              padding: "var(--form-spacing-lg, 1.5rem)",
+              boxShadow:
+                "var(--form-shadow-xl, 0 20px 25px -5px rgb(0 0 0 / 0.1))",
+            }}
           >
             <div className="text-center">
-              <AlertTriangle className="w-12 h-12 text-amber-500 mx-auto mb-4" />
-              <h3 className="text-lg font-semibold text-gray-900 mb-2">
+              <AlertTriangle
+                className="w-12 h-12 mx-auto mb-4"
+                style={{ color: "var(--form-color-warning, #f59e0b)" }}
+              />
+              <h3
+                className="mb-2"
+                style={{
+                  fontSize: "var(--form-font-size-lg, 1.125rem)",
+                  fontWeight: "var(--form-font-weight-semibold, 600)",
+                  color: "var(--form-color-text-primary, #111827)",
+                  marginBottom: "var(--form-spacing-xs, 0.5rem)",
+                }}
+              >
                 Don't lose your progress!
               </h3>
-              <p className="text-gray-600 mb-6">
+              <p
+                className="mb-6"
+                style={{
+                  color: "var(--form-color-text-secondary, #6b7280)",
+                  marginBottom: "var(--form-spacing-lg, 1.5rem)",
+                  fontSize: "var(--form-font-size-base, 1rem)",
+                }}
+              >
                 Your form is {Math.round(completionPercentage)}% complete. Your
                 progress has been automatically saved.
               </p>
 
-              <div className="flex gap-3">
+              <div
+                className="flex"
+                style={{ gap: "var(--form-spacing-sm, 0.75rem)" }}
+              >
                 <motion.button
                   type="button"
                   onClick={() => setShowExitIntent(false)}
-                  className="flex-1 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 font-medium"
+                  className="flex-1 px-4 py-2 rounded-lg font-medium"
+                  style={{
+                    backgroundColor: "var(--form-color-primary, #3b82f6)",
+                    color: "var(--form-color-text-inverse, #ffffff)",
+                    borderRadius: "var(--form-border-radius-lg, 0.75rem)",
+                    padding:
+                      "var(--form-spacing-sm, 0.5rem) var(--form-spacing-md, 1rem)",
+                    fontSize:
+                      "var(--form-font-size-button-text, var(--form-font-size-sm, 0.875rem))",
+                    fontWeight:
+                      "var(--form-font-weight-button-text, var(--form-font-weight-medium, 500))",
+                  }}
                   whileHover={{ scale: 1.02 }}
                   whileTap={{ scale: 0.98 }}
                 >
@@ -271,7 +332,18 @@ export const MultiStepLayout: React.FC<MultiStepLayoutProps> = ({
                     saveProgress();
                     setShowExitIntent(false);
                   }}
-                  className="flex-1 px-4 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 font-medium"
+                  className="flex-1 px-4 py-2 rounded-lg font-medium"
+                  style={{
+                    backgroundColor: "var(--form-color-secondary, #f8f9fa)",
+                    color: "var(--form-color-text-primary, #374151)",
+                    borderRadius: "var(--form-border-radius-lg, 0.75rem)",
+                    padding:
+                      "var(--form-spacing-sm, 0.5rem) var(--form-spacing-md, 1rem)",
+                    fontSize:
+                      "var(--form-font-size-button-text, var(--form-font-size-sm, 0.875rem))",
+                    fontWeight:
+                      "var(--form-font-weight-button-text, var(--form-font-weight-medium, 500))",
+                  }}
                   whileHover={{ scale: 1.02 }}
                   whileTap={{ scale: 0.98 }}
                 >
@@ -318,7 +390,14 @@ export const MultiStepLayout: React.FC<MultiStepLayoutProps> = ({
   };
 
   return (
-    <div className="multi-step-layout min-h-screen bg-gray-50">
+    <div
+      className="multi-step-layout min-h-screen"
+      style={{
+        background:
+          "var(--form-background-value, var(--form-color-background, #f9fafb))",
+        backgroundImage: "var(--form-background-pattern, none)",
+      }}
+    >
       {/* Progress Restored Notification */}
       <ProgressRestoredNotification />
 
@@ -326,21 +405,70 @@ export const MultiStepLayout: React.FC<MultiStepLayoutProps> = ({
       <ExitIntentModal />
 
       {/* Header with Progress */}
-      <div className="sticky top-0 z-40 bg-white shadow-sm border-b border-gray-200">
-        <div className="max-w-4xl mx-auto px-4 py-6">
+      <div
+        className="sticky top-0 z-40 shadow-sm"
+        style={{
+          backgroundColor: "var(--form-color-surface, #ffffff)",
+          borderBottom: `1px solid var(--form-color-border, #e5e7eb)`,
+          boxShadow: "var(--form-shadow-sm, 0 1px 2px 0 rgb(0 0 0 / 0.05))",
+          zIndex: "var(--form-z-index-dropdown, 40)",
+        }}
+      >
+        <div
+          className="max-w-4xl mx-auto px-4 py-6"
+          style={{
+            padding:
+              "var(--form-spacing-lg, 1.5rem) var(--form-spacing-md, 1rem)",
+          }}
+        >
           {/* Form Title and Step Info */}
-          <div className="flex items-center justify-between mb-6">
+          <div
+            className="flex items-center justify-between mb-6"
+            style={{ marginBottom: "var(--form-spacing-lg, 1.5rem)" }}
+          >
             <div>
-              <h1 className="text-2xl font-bold text-gray-900">{form.title}</h1>
+              <h1
+                className="font-bold"
+                style={{
+                  fontSize: "1.6rem",
+                  fontWeight:
+                    "var(--form-font-weight-form-title, var(--form-font-weight-bold, 700))",
+                  color: "var(--form-color-text-primary, #111827)",
+                  lineHeight:
+                    "var(--form-line-height-form-title, var(--form-line-height-tight, 1.25))",
+                }}
+              >
+                {form.title}
+              </h1>
               {form.description && (
-                <p className="text-gray-600 mt-1">{form.description}</p>
+                <p
+                  className="mt-1"
+                  style={{
+                    color: "var(--form-color-text-secondary, #6b7280)",
+                    marginTop: "var(--form-spacing-xs, 0.25rem)",
+                    fontSize: "1rem",
+                    lineHeight:
+                      "var(--form-line-height-form-description, var(--form-line-height-normal, 1.5))",
+                  }}
+                >
+                  {form.description}
+                </p>
               )}
             </div>
 
-            <div className="flex items-center gap-4">
+            <div
+              className="flex items-center"
+              style={{ gap: "var(--form-spacing-md, 1rem)" }}
+            >
               {/* Save Progress Indicator */}
               <motion.div
-                className="flex items-center gap-2 text-sm text-gray-500"
+                className="flex items-center text-sm"
+                style={{
+                  gap: "var(--form-spacing-xs, 0.5rem)",
+                  color: "var(--form-color-text-muted, #9ca3af)",
+                  fontSize:
+                    "var(--form-font-size-caption, var(--form-font-size-sm, 0.875rem))",
+                }}
                 animate={{ opacity: isLoading ? 1 : 0.7 }}
               >
                 {isLoading ? (
@@ -358,8 +486,24 @@ export const MultiStepLayout: React.FC<MultiStepLayoutProps> = ({
 
               {/* Completion Percentage */}
               <div className="text-right">
-                <div className="text-sm text-gray-500">Progress</div>
-                <div className="text-lg font-semibold text-blue-600">
+                <div
+                  className="text-sm"
+                  style={{
+                    color: "var(--form-color-text-muted, #9ca3af)",
+                    fontSize:
+                      "var(--form-font-size-caption, var(--form-font-size-sm, 0.875rem))",
+                  }}
+                >
+                  Progress
+                </div>
+                <div
+                  className="text-lg font-semibold"
+                  style={{
+                    fontSize: "var(--form-font-size-lg, 1.125rem)",
+                    fontWeight: "var(--form-font-weight-semibold, 600)",
+                    color: "var(--form-color-primary, #3b82f6)",
+                  }}
+                >
                   {Math.round(completionPercentage)}%
                 </div>
               </div>
@@ -382,35 +526,59 @@ export const MultiStepLayout: React.FC<MultiStepLayoutProps> = ({
             variant={getStepIndicatorVariant()}
             showLabels={progressConfig?.showStepLabels !== false}
             className="mb-4"
-          />
-
-          {/* Overall Progress Bar */}
-          <AnimatedProgressIndicator
-            progress={completionPercentage}
-            type={getProgressIndicatorType()}
-            showPercentage={false}
-            className="h-2"
+            style={{ marginBottom: "var(--form-spacing-md, 1rem)" }}
           />
         </div>
       </div>
 
       {/* Main Content Area */}
-      <div className="max-w-4xl mx-auto px-4 py-8">
+      <div
+        className="max-w-4xl mx-auto px-4 py-8"
+        style={{
+          padding: "var(--form-spacing-2xl, 2rem) var(--form-spacing-md, 1rem)",
+        }}
+      >
         {/* Step Content */}
         <div className="relative">
           {/* Step Header */}
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
-            className="text-center mb-8"
+            className="text-center"
+            style={{ marginBottom: "var(--form-spacing-2xl, 2rem)" }}
           >
-            <h2 className="text-xl font-semibold text-gray-900 mb-2">
+            <h2
+              className="font-semibold mb-2"
+              style={{
+                fontSize:
+                  "var(--form-font-size-section-title, var(--form-font-size-xl, 1.25rem))",
+                fontWeight:
+                  "var(--form-font-weight-section-title, var(--form-font-weight-semibold, 600))",
+                color: "var(--form-color-text-primary, #111827)",
+                marginBottom: "var(--form-spacing-xs, 0.5rem)",
+              }}
+            >
               {currentStep.title}
             </h2>
             {currentStep.description && (
-              <p className="text-gray-600">{currentStep.description}</p>
+              <p
+                style={{
+                  color: "var(--form-color-text-secondary, #6b7280)",
+                  fontSize: "var(--form-font-size-base, 1rem)",
+                }}
+              >
+                {currentStep.description}
+              </p>
             )}
-            <div className="text-sm text-gray-500 mt-2">
+            <div
+              className="text-sm mt-2"
+              style={{
+                color: "var(--form-color-text-muted, #9ca3af)",
+                marginTop: "var(--form-spacing-xs, 0.5rem)",
+                fontSize:
+                  "var(--form-font-size-caption, var(--form-font-size-sm, 0.875rem))",
+              }}
+            >
               Step {currentStepIndex + 1} of {totalSteps}
             </div>
           </motion.div>
@@ -420,15 +588,45 @@ export const MultiStepLayout: React.FC<MultiStepLayoutProps> = ({
             <motion.div
               initial={{ opacity: 0, y: -10 }}
               animate={{ opacity: 1, y: 0 }}
-              className="bg-red-50 border border-red-200 rounded-lg p-4 mb-6"
+              className="rounded-lg p-4 mb-6"
+              style={{
+                backgroundColor: "var(--form-color-error-bg, #fef2f2)",
+                border: `1px solid var(--form-color-border-error, #fecaca)`,
+                borderRadius: "var(--form-border-radius-lg, 0.75rem)",
+                padding: "var(--form-spacing-md, 1rem)",
+                marginBottom: "var(--form-spacing-lg, 1.5rem)",
+              }}
             >
-              <div className="flex items-start gap-3">
-                <AlertTriangle className="w-5 h-5 text-red-600 flex-shrink-0 mt-0.5" />
+              <div
+                className="flex items-start"
+                style={{ gap: "var(--form-spacing-sm, 0.75rem)" }}
+              >
+                <AlertTriangle
+                  className="w-5 h-5 flex-shrink-0 mt-0.5"
+                  style={{ color: "var(--form-color-error, #dc2626)" }}
+                />
                 <div>
-                  <h4 className="text-sm font-medium text-red-800 mb-1">
+                  <h4
+                    className="text-sm font-medium mb-1"
+                    style={{
+                      fontSize:
+                        "var(--form-font-size-error-text, var(--form-font-size-sm, 0.875rem))",
+                      fontWeight:
+                        "var(--form-font-weight-error-text, var(--form-font-weight-medium, 500))",
+                      color: "var(--form-color-error, #dc2626)",
+                      marginBottom: "var(--form-spacing-xs, 0.25rem)",
+                    }}
+                  >
                     Please fix the following errors:
                   </h4>
-                  <ul className="text-sm text-red-700 space-y-1">
+                  <ul
+                    className="text-sm space-y-1"
+                    style={{
+                      fontSize:
+                        "var(--form-font-size-error-text, var(--form-font-size-sm, 0.875rem))",
+                      color: "var(--form-color-error, #dc2626)",
+                    }}
+                  >
                     {getStepErrors(currentStepIndex).map((error, index) => (
                       <li key={index} className="list-disc list-inside">
                         {error}
@@ -455,9 +653,20 @@ export const MultiStepLayout: React.FC<MultiStepLayoutProps> = ({
                   opacity: { duration: 0.2 },
                   scale: { duration: 0.2 },
                 }}
-                className="bg-white rounded-xl shadow-sm border border-gray-200 p-8"
+                className="shadow-sm p-8"
+                style={{
+                  backgroundColor: "var(--form-color-surface, #ffffff)",
+                  borderRadius: "var(--form-border-radius-xl, 1rem)",
+                  border: `1px solid var(--form-color-border, #e5e7eb)`,
+                  boxShadow:
+                    "var(--form-shadow-sm, 0 1px 2px 0 rgb(0 0 0 / 0.05))",
+                  padding: "var(--form-spacing-2xl, 2rem)",
+                }}
               >
-                <div className="space-y-8">
+                <div
+                  style={{ gap: "var(--form-spacing-2xl, 2rem)" }}
+                  className="space-y-8"
+                >
                   {currentStep.fields.map((field, fieldIndex) => (
                     <motion.div
                       key={field.id}
@@ -489,7 +698,12 @@ export const MultiStepLayout: React.FC<MultiStepLayoutProps> = ({
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.3 }}
-          className="flex items-center justify-between mt-8 pt-6 border-t border-gray-200"
+          className="flex items-center justify-between pt-6"
+          style={{
+            marginTop: "var(--form-spacing-2xl, 2rem)",
+            paddingTop: "var(--form-spacing-lg, 1.5rem)",
+            borderTop: `1px solid var(--form-color-border, #e5e7eb)`,
+          }}
         >
           {/* Back Button */}
           <div className="flex-1">
@@ -498,7 +712,20 @@ export const MultiStepLayout: React.FC<MultiStepLayoutProps> = ({
                 variant="secondary"
                 onClick={handlePreviousStep}
                 disabled={isLoading || isValidating}
-                className="inline-flex items-center gap-2 px-6 py-3 text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 disabled:opacity-50"
+                className="inline-flex items-center gap-2 px-6 py-3 rounded-lg disabled:opacity-50"
+                style={{
+                  color: "var(--form-color-text-primary, #374151)",
+                  backgroundColor: "var(--form-color-surface, #ffffff)",
+                  border: `1px solid var(--form-color-border, #d1d5db)`,
+                  borderRadius: "var(--form-border-radius-lg, 0.75rem)",
+                  padding:
+                    "var(--form-spacing-sm, 0.75rem) var(--form-spacing-lg, 1.5rem)",
+                  gap: "var(--form-spacing-xs, 0.5rem)",
+                  fontSize:
+                    "var(--form-font-size-button-text, var(--form-font-size-sm, 0.875rem))",
+                  fontWeight:
+                    "var(--form-font-weight-button-text, var(--form-font-weight-medium, 500))",
+                }}
               >
                 <ChevronLeft className="w-4 h-4" />
                 Previous
@@ -507,7 +734,15 @@ export const MultiStepLayout: React.FC<MultiStepLayoutProps> = ({
           </div>
 
           {/* Step Counter */}
-          <div className="flex items-center gap-2 text-sm text-gray-500">
+          <div
+            className="flex items-center text-sm"
+            style={{
+              gap: "var(--form-spacing-xs, 0.5rem)",
+              color: "var(--form-color-text-muted, #9ca3af)",
+              fontSize:
+                "var(--form-font-size-caption, var(--form-font-size-sm, 0.875rem))",
+            }}
+          >
             <span>{currentStepIndex + 1}</span>
             <span>/</span>
             <span>{totalSteps}</span>
@@ -519,11 +754,22 @@ export const MultiStepLayout: React.FC<MultiStepLayoutProps> = ({
               variant="primary"
               onClick={handleNextStep}
               disabled={isLoading || isValidating}
-              className={`inline-flex items-center gap-2 px-6 py-3 text-white rounded-lg font-medium disabled:opacity-50 ${
-                isLastStep
-                  ? "bg-green-600 hover:bg-green-700"
-                  : "bg-blue-600 hover:bg-blue-700"
-              }`}
+              className={`inline-flex items-center gap-2 px-6 py-3 rounded-lg font-medium disabled:opacity-50`}
+              style={{
+                color: "var(--form-color-text-inverse, #ffffff)",
+                backgroundColor: isLastStep
+                  ? "var(--form-color-success, #10b981)"
+                  : "var(--form-color-primary, #3b82f6)",
+                border: "none",
+                borderRadius: "var(--form-border-radius-lg, 0.75rem)",
+                padding:
+                  "var(--form-spacing-sm, 0.75rem) var(--form-spacing-lg, 1.5rem)",
+                gap: "var(--form-spacing-xs, 0.5rem)",
+                fontSize:
+                  "var(--form-font-size-button-text, var(--form-font-size-sm, 0.875rem))",
+                fontWeight:
+                  "var(--form-font-weight-button-text, var(--form-font-weight-medium, 500))",
+              }}
             >
               {isValidating ? (
                 <>
@@ -546,11 +792,26 @@ export const MultiStepLayout: React.FC<MultiStepLayoutProps> = ({
         </motion.div>
 
         {/* Mobile Progress Footer */}
-        <div className="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 p-4 md:hidden">
+        <div
+          className="fixed bottom-0 left-0 right-0 p-4 md:hidden"
+          style={{
+            backgroundColor: "var(--form-color-surface, #ffffff)",
+            borderTop: `1px solid var(--form-color-border, #e5e7eb)`,
+            padding: "var(--form-spacing-md, 1rem)",
+          }}
+        >
           <div className="max-w-4xl mx-auto">
             {/* Mobile Progress Bar */}
-            <div className="mb-3">
-              <div className="flex justify-between text-xs text-gray-500 mb-1">
+            <div style={{ marginBottom: "var(--form-spacing-sm, 0.75rem)" }}>
+              <div
+                className="flex justify-between text-xs mb-1"
+                style={{
+                  color: "var(--form-color-text-muted, #9ca3af)",
+                  marginBottom: "var(--form-spacing-xs, 0.25rem)",
+                  fontSize:
+                    "var(--form-font-size-caption, var(--form-font-size-xs, 0.75rem))",
+                }}
+              >
                 <span>
                   Step {currentStepIndex + 1} of {totalSteps}
                 </span>
@@ -565,12 +826,26 @@ export const MultiStepLayout: React.FC<MultiStepLayoutProps> = ({
             </div>
 
             {/* Mobile Navigation */}
-            <div className="flex items-center justify-between">
+            <div
+              className="flex items-center justify-between"
+              style={{ gap: "var(--form-spacing-sm, 0.75rem)" }}
+            >
               <AnimatedButton
                 variant="secondary"
                 onClick={handlePreviousStep}
                 disabled={isFirstStep || isLoading || isValidating}
                 className="flex items-center gap-2 px-4 py-2 text-sm"
+                style={{
+                  color: "var(--form-color-text-primary, #374151)",
+                  backgroundColor: "var(--form-color-surface, #ffffff)",
+                  border: `1px solid var(--form-color-border, #d1d5db)`,
+                  borderRadius: "var(--form-border-radius-md, 0.5rem)",
+                  padding:
+                    "var(--form-spacing-xs, 0.5rem) var(--form-spacing-md, 1rem)",
+                  gap: "var(--form-spacing-xs, 0.5rem)",
+                  fontSize:
+                    "var(--form-font-size-button-text, var(--form-font-size-sm, 0.875rem))",
+                }}
               >
                 <ChevronLeft className="w-4 h-4" />
                 Back
@@ -580,9 +855,20 @@ export const MultiStepLayout: React.FC<MultiStepLayoutProps> = ({
                 variant="primary"
                 onClick={handleNextStep}
                 disabled={isLoading || isValidating}
-                className={`flex items-center gap-2 px-4 py-2 text-sm ${
-                  isLastStep ? "bg-green-600" : "bg-blue-600"
-                }`}
+                className={`flex items-center gap-2 px-4 py-2 text-sm`}
+                style={{
+                  color: "var(--form-color-text-inverse, #ffffff)",
+                  backgroundColor: isLastStep
+                    ? "var(--form-color-success, #10b981)"
+                    : "var(--form-color-primary, #3b82f6)",
+                  border: "none",
+                  borderRadius: "var(--form-border-radius-md, 0.5rem)",
+                  padding:
+                    "var(--form-spacing-xs, 0.5rem) var(--form-spacing-md, 1rem)",
+                  gap: "var(--form-spacing-xs, 0.5rem)",
+                  fontSize:
+                    "var(--form-font-size-button-text, var(--form-font-size-sm, 0.875rem))",
+                }}
               >
                 {isValidating ? (
                   <>

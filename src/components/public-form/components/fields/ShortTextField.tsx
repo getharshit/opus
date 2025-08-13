@@ -71,17 +71,23 @@ export const ShortTextField: React.FC<ShortTextFieldProps> = ({
             type="text"
             placeholder={field.placeholder || "Type your answer here..."}
             maxLength={maxLength}
-            className={`
-              w-full px-4 py-3 text-base border rounded-lg
-              focus:ring-2 focus:ring-blue-500 focus:border-transparent
-              transition-colors duration-200
-              ${
-                hasError
-                  ? "border-red-500 bg-red-50"
-                  : "border-gray-300 hover:border-gray-400"
-              }
-              disabled:bg-gray-100 disabled:cursor-not-allowed
-            `}
+            className="w-full px-4 py-3 text-base border transition-colors duration-200 disabled:cursor-not-allowed focus:outline-none focus:ring-2 focus:ring-offset-2"
+            style={
+              {
+                borderColor: hasError
+                  ? "var(--form-color-error, #ef4444)"
+                  : "var(--form-color-border, #d1d5db)",
+                borderRadius: "var(--form-border-radius, 8px)",
+                borderWidth: "var(--form-border-width, 1px)",
+                backgroundColor: hasError
+                  ? "var(--form-color-error, #ef4444)10" // 10% opacity
+                  : "var(--form-color-surface, #ffffff)",
+                color: "var(--form-color-text, #1f2937)",
+                fontSize: "var(--form-font-size-input, 16px)",
+                fontFamily: "var(--form-font-family, inherit)",
+                "--tw-ring-color": "var(--form-color-primary, #3b82f6)",
+              } as React.CSSProperties
+            }
             aria-invalid={hasError}
             aria-describedby={hasError ? `error-${field.id}` : undefined}
           />
@@ -92,10 +98,15 @@ export const ShortTextField: React.FC<ShortTextFieldProps> = ({
           <div className="flex-1">{/* Error will be displayed here */}</div>
           <div
             className={`character-counter ${
-              currentLength > maxLength * 0.9
-                ? "text-orange-600"
-                : "text-gray-500"
+              currentLength > maxLength * 0.9 ? "text-orange-600" : ""
             }`}
+            style={{
+              color:
+                currentLength > maxLength * 0.9
+                  ? "var(--form-color-warning, #f59e0b)"
+                  : "var(--form-color-text-secondary, #6b7280)",
+              fontSize: "var(--form-font-size-small, 12px)",
+            }}
           >
             {currentLength}/{maxLength}
           </div>
@@ -105,9 +116,13 @@ export const ShortTextField: React.FC<ShortTextFieldProps> = ({
         <AnimatedErrorMessage isVisible={hasError}>
           <div
             id={`error-${field.id}`}
-            className="flex items-start gap-2 text-sm text-red-600"
+            className="flex items-start gap-2 text-sm"
             role="alert"
             aria-live="polite"
+            style={{
+              color: "var(--form-color-error, #ef4444)",
+              fontSize: "var(--form-font-size-small, 14px)",
+            }}
           >
             <AlertCircle className="w-4 h-4 flex-shrink-0 mt-0.5" />
             <span>{error?.message}</span>

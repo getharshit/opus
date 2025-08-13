@@ -64,9 +64,9 @@ export const PostSubmissionField: React.FC<PostSubmissionFieldProps> = ({
 
   // Safe access to nested theme properties with fallbacks
   const logoUrl =
-    form.theme?.customization?.branding?.logo?.url ||
-    form.customization?.branding?.logo?.url ||
-    form.theme?.logoConfig?.file?.url;
+    (form.theme as any)?.logoUrl ||
+    (form.customization as any)?.branding?.logo?.url ||
+    null;
 
   // Auto-redirect timer
   const [redirectCountdown, setRedirectCountdown] = useState(
@@ -86,7 +86,10 @@ export const PostSubmissionField: React.FC<PostSubmissionFieldProps> = ({
 
   return (
     <div
-      className={`post-submission-field min-h-screen bg-gradient-to-br from-green-50 via-white to-emerald-50 relative overflow-hidden ${className}`}
+      className={`post-submission-field min-h-screen relative overflow-hidden ${className}`}
+      style={{
+        background: `linear-gradient(135deg, var(--form-color-background, #ffffff) 0%, var(--form-color-surface, #f9fafb) 100%)`,
+      }}
     >
       {/* Confetti Animation */}
       {showConfetti && (
@@ -94,7 +97,10 @@ export const PostSubmissionField: React.FC<PostSubmissionFieldProps> = ({
           {Array.from({ length: 50 }).map((_, i) => (
             <motion.div
               key={i}
-              className="absolute w-2 h-2 bg-gradient-to-r from-blue-400 to-purple-500 rounded-full"
+              className="absolute w-2 h-2 rounded-full"
+              style={{
+                background: `linear-gradient(45deg, var(--form-color-primary, #3B82F6), var(--form-color-accent, #8B5CF6))`,
+              }}
               initial={{
                 x:
                   Math.random() *
@@ -120,7 +126,12 @@ export const PostSubmissionField: React.FC<PostSubmissionFieldProps> = ({
         </div>
       )}
 
-      <div className="max-w-4xl mx-auto px-4 py-12 flex items-center justify-center min-h-screen">
+      <div
+        className="max-w-4xl mx-auto px-4 py-12 flex items-center justify-center min-h-screen"
+        style={{
+          padding: `var(--form-spacing-xl, 48px) var(--form-spacing-md, 16px)`,
+        }}
+      >
         <motion.div
           initial={{ opacity: 0, y: 40 }}
           animate={{ opacity: 1, y: 0 }}
@@ -141,9 +152,13 @@ export const PostSubmissionField: React.FC<PostSubmissionFieldProps> = ({
             className="flex justify-center"
           >
             <div className="relative">
-              <CheckCircle className="w-24 h-24 text-green-500" />
+              <CheckCircle
+                className="w-24 h-24"
+                style={{ color: "var(--form-color-success, #10B981)" }}
+              />
               <motion.div
-                className="absolute inset-0 w-24 h-24 border-4 border-green-200 rounded-full"
+                className="absolute inset-0 w-24 h-24 border-4 rounded-full"
+                style={{ borderColor: "var(--form-color-success, #10B981)33" }}
                 animate={{ scale: [1, 1.2, 1] }}
                 transition={{
                   duration: 2,
@@ -176,7 +191,14 @@ export const PostSubmissionField: React.FC<PostSubmissionFieldProps> = ({
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.5, delay: 0.4 }}
-              className="text-3xl md:text-4xl font-bold text-gray-900"
+              style={{
+                color: "var(--form-color-text, #111827)",
+                fontSize: "var(--form-font-size-title, 30px)",
+                fontWeight: "var(--form-font-weight-bold, 700)",
+                fontFamily:
+                  "var(--form-font-family-primary, Inter, system-ui, sans-serif)",
+                marginBottom: "var(--form-spacing-md, 16px)",
+              }}
             >
               {field.label || "Thank You!"}
             </motion.h1>
@@ -185,7 +207,15 @@ export const PostSubmissionField: React.FC<PostSubmissionFieldProps> = ({
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.5, delay: 0.5 }}
-              className="text-lg text-gray-600 max-w-2xl mx-auto"
+              style={{
+                color: "var(--form-color-text-secondary, #6B7280)",
+                fontSize: "var(--form-font-size-question, 16px)",
+                fontFamily:
+                  "var(--form-font-family-primary, Inter, system-ui, sans-serif)",
+                lineHeight: "var(--form-line-height-normal, 1.5)",
+                maxWidth: "32rem",
+                margin: "0 auto",
+              }}
             >
               {field.description ||
                 "Your response has been submitted successfully. We appreciate your time and feedback."}
@@ -198,27 +228,68 @@ export const PostSubmissionField: React.FC<PostSubmissionFieldProps> = ({
               initial={{ opacity: 0, y: 30 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.5, delay: 0.6 }}
-              className="bg-white/80 backdrop-blur-sm rounded-xl p-6 border border-gray-200 max-w-md mx-auto"
+              style={{
+                backgroundColor: "var(--form-color-surface, #ffffff)",
+                border: `1px solid var(--form-color-border, #E5E7EB)`,
+                borderRadius: "var(--form-border-radius, 8px)",
+                padding: "var(--form-spacing-lg, 24px)",
+                maxWidth: "28rem",
+                margin: "0 auto",
+                backdropFilter: "blur(8px)",
+              }}
             >
-              <h3 className="font-medium text-gray-900 mb-3">
+              <h3
+                style={{
+                  color: "var(--form-color-text, #111827)",
+                  fontSize: "var(--form-font-size-question, 16px)",
+                  fontWeight: "var(--form-font-weight-medium, 500)",
+                  fontFamily:
+                    "var(--form-font-family-primary, Inter, system-ui, sans-serif)",
+                  marginBottom: "var(--form-spacing-sm, 12px)",
+                }}
+              >
                 Submission Details
               </h3>
               <div className="space-y-2 text-sm">
                 <div className="flex justify-between">
-                  <span className="text-gray-500">Submitted at:</span>
-                  <span className="text-gray-700">
+                  <span
+                    style={{
+                      color: "var(--form-color-text-secondary, #6B7280)",
+                    }}
+                  >
+                    Submitted at:
+                  </span>
+                  <span style={{ color: "var(--form-color-text, #111827)" }}>
                     {new Date().toLocaleString()}
                   </span>
                 </div>
                 <div className="flex justify-between">
-                  <span className="text-gray-500">Response ID:</span>
-                  <span className="text-gray-700 font-mono text-xs">
+                  <span
+                    style={{
+                      color: "var(--form-color-text-secondary, #6B7280)",
+                    }}
+                  >
+                    Response ID:
+                  </span>
+                  <span
+                    style={{
+                      color: "var(--form-color-text, #111827)",
+                      fontFamily: "var(--form-font-mono, Monaco, monospace)",
+                      fontSize: "var(--form-font-size-small, 12px)",
+                    }}
+                  >
                     {submissionData.id || "N/A"}
                   </span>
                 </div>
                 <div className="flex justify-between">
-                  <span className="text-gray-500">Questions answered:</span>
-                  <span className="text-gray-700">
+                  <span
+                    style={{
+                      color: "var(--form-color-text-secondary, #6B7280)",
+                    }}
+                  >
+                    Questions answered:
+                  </span>
+                  <span style={{ color: "var(--form-color-text, #111827)" }}>
                     {Object.keys(submissionData).length - 1} questions
                   </span>
                 </div>
@@ -231,16 +302,40 @@ export const PostSubmissionField: React.FC<PostSubmissionFieldProps> = ({
             initial={{ opacity: 0, y: 30 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.5, delay: 0.7 }}
-            className="flex flex-wrap justify-center gap-4"
+            className="flex flex-wrap justify-center"
+            style={{ gap: "var(--form-spacing-md, 16px)" }}
           >
             {/* Download Response */}
             {showDownload && (
               <motion.button
                 type="button"
                 onClick={() => handleAction("download", submissionData)}
-                className="flex items-center gap-2 px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-medium"
+                style={{
+                  backgroundColor: "var(--form-color-primary, #3B82F6)",
+                  color: "white",
+                  border: "none",
+                  borderRadius: "var(--form-border-radius, 8px)",
+                  padding: `var(--form-spacing-sm, 12px) var(--form-spacing-lg, 24px)`,
+                  fontSize: "var(--form-font-size-input, 16px)",
+                  fontWeight: "var(--form-font-weight-medium, 500)",
+                  fontFamily:
+                    "var(--form-font-family-primary, Inter, system-ui, sans-serif)",
+                  cursor: "pointer",
+                  display: "flex",
+                  alignItems: "center",
+                  gap: "var(--form-spacing-xs, 8px)",
+                  transition: "all 0.2s ease",
+                }}
                 whileHover={{ scale: 1.02 }}
                 whileTap={{ scale: 0.98 }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.backgroundColor =
+                    "var(--form-color-primary-dark, #2563EB)";
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.backgroundColor =
+                    "var(--form-color-primary, #3B82F6)";
+                }}
               >
                 <Download className="w-4 h-4" />
                 Download Response
@@ -252,7 +347,22 @@ export const PostSubmissionField: React.FC<PostSubmissionFieldProps> = ({
               <motion.button
                 type="button"
                 onClick={handleCopyLink}
-                className="flex items-center gap-2 px-6 py-3 bg-gray-600 text-white rounded-lg hover:bg-gray-700 transition-colors font-medium"
+                style={{
+                  backgroundColor: "var(--form-color-secondary, #6B7280)",
+                  color: "white",
+                  border: "none",
+                  borderRadius: "var(--form-border-radius, 8px)",
+                  padding: `var(--form-spacing-sm, 12px) var(--form-spacing-lg, 24px)`,
+                  fontSize: "var(--form-font-size-input, 16px)",
+                  fontWeight: "var(--form-font-weight-medium, 500)",
+                  fontFamily:
+                    "var(--form-font-family-primary, Inter, system-ui, sans-serif)",
+                  cursor: "pointer",
+                  display: "flex",
+                  alignItems: "center",
+                  gap: "var(--form-spacing-xs, 8px)",
+                  transition: "all 0.2s ease",
+                }}
                 whileHover={{ scale: 1.02 }}
                 whileTap={{ scale: 0.98 }}
               >
@@ -276,11 +386,28 @@ export const PostSubmissionField: React.FC<PostSubmissionFieldProps> = ({
                 key={index}
                 type="button"
                 onClick={() => handleAction(action.type, action.data)}
-                className={`flex items-center gap-2 px-6 py-3 rounded-lg font-medium transition-colors ${
-                  action.style === "primary"
-                    ? "bg-blue-600 text-white hover:bg-blue-700"
-                    : "bg-gray-200 text-gray-700 hover:bg-gray-300"
-                }`}
+                style={{
+                  backgroundColor:
+                    action.style === "primary"
+                      ? "var(--form-color-primary, #3B82F6)"
+                      : "var(--form-color-surface, #F3F4F6)",
+                  color:
+                    action.style === "primary"
+                      ? "white"
+                      : "var(--form-color-text, #374151)",
+                  border: "none",
+                  borderRadius: "var(--form-border-radius, 8px)",
+                  padding: `var(--form-spacing-sm, 12px) var(--form-spacing-lg, 24px)`,
+                  fontSize: "var(--form-font-size-input, 16px)",
+                  fontWeight: "var(--form-font-weight-medium, 500)",
+                  fontFamily:
+                    "var(--form-font-family-primary, Inter, system-ui, sans-serif)",
+                  cursor: "pointer",
+                  display: "flex",
+                  alignItems: "center",
+                  gap: "var(--form-spacing-xs, 8px)",
+                  transition: "all 0.2s ease",
+                }}
                 whileHover={{ scale: 1.02 }}
                 whileTap={{ scale: 0.98 }}
               >
@@ -303,21 +430,55 @@ export const PostSubmissionField: React.FC<PostSubmissionFieldProps> = ({
               initial={{ opacity: 0, y: 30 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.5, delay: 0.8 }}
-              className="bg-yellow-50 border border-yellow-200 rounded-lg p-4 max-w-md mx-auto"
+              style={{
+                backgroundColor: "var(--form-color-warning, #FEF3C7)33",
+                border: `1px solid var(--form-color-warning, #F59E0B)33`,
+                borderRadius: "var(--form-border-radius, 8px)",
+                padding: "var(--form-spacing-md, 16px)",
+                maxWidth: "28rem",
+                margin: "0 auto",
+              }}
             >
-              <h4 className="font-medium text-yellow-800 mb-2">
+              <h4
+                style={{
+                  color: "var(--form-color-warning, #F59E0B)",
+                  fontSize: "var(--form-font-size-input, 16px)",
+                  fontWeight: "var(--form-font-weight-medium, 500)",
+                  fontFamily:
+                    "var(--form-font-family-primary, Inter, system-ui, sans-serif)",
+                  marginBottom: "var(--form-spacing-xs, 8px)",
+                }}
+              >
                 Help us improve
               </h4>
-              <p className="text-sm text-yellow-700 mb-3">
+              <p
+                style={{
+                  color: "var(--form-color-text, #374151)",
+                  fontSize: "var(--form-font-size-small, 14px)",
+                  fontFamily:
+                    "var(--form-font-family-primary, Inter, system-ui, sans-serif)",
+                  marginBottom: "var(--form-spacing-sm, 12px)",
+                }}
+              >
                 How was your experience with this form?
               </p>
-              <div className="flex justify-center gap-2">
+              <div
+                className="flex justify-center"
+                style={{ gap: "var(--form-spacing-xs, 8px)" }}
+              >
                 {[1, 2, 3, 4, 5].map((rating) => (
                   <motion.button
                     key={rating}
                     type="button"
                     onClick={() => handleAction("feedback", { rating })}
-                    className="p-1 text-yellow-400 hover:text-yellow-500 transition-colors"
+                    style={{
+                      padding: "var(--form-spacing-xs, 4px)",
+                      background: "transparent",
+                      border: "none",
+                      color: "var(--form-color-warning, #F59E0B)",
+                      cursor: "pointer",
+                      transition: "all 0.2s ease",
+                    }}
                     whileHover={{ scale: 1.1 }}
                     whileTap={{ scale: 0.9 }}
                   >
@@ -336,14 +497,33 @@ export const PostSubmissionField: React.FC<PostSubmissionFieldProps> = ({
               transition={{ duration: 0.5, delay: 0.9 }}
               className="space-y-3"
             >
-              <h4 className="text-sm font-medium text-gray-700">
+              <h4
+                style={{
+                  color: "var(--form-color-text, #374151)",
+                  fontSize: "var(--form-font-size-small, 14px)",
+                  fontWeight: "var(--form-font-weight-medium, 500)",
+                  fontFamily:
+                    "var(--form-font-family-primary, Inter, system-ui, sans-serif)",
+                }}
+              >
                 Share this form
               </h4>
-              <div className="flex justify-center gap-3">
+              <div
+                className="flex justify-center"
+                style={{ gap: "var(--form-spacing-sm, 12px)" }}
+              >
                 <motion.button
                   type="button"
                   onClick={() => handleAction("share", { platform: "twitter" })}
-                  className="p-2 bg-blue-400 text-white rounded-lg hover:bg-blue-500 transition-colors"
+                  style={{
+                    padding: "var(--form-spacing-xs, 8px)",
+                    backgroundColor: "#3B82F6",
+                    color: "white",
+                    border: "none",
+                    borderRadius: "var(--form-border-radius, 8px)",
+                    cursor: "pointer",
+                    transition: "all 0.2s ease",
+                  }}
                   whileHover={{ scale: 1.1 }}
                   whileTap={{ scale: 0.9 }}
                 >
@@ -354,7 +534,15 @@ export const PostSubmissionField: React.FC<PostSubmissionFieldProps> = ({
                   onClick={() =>
                     handleAction("share", { platform: "linkedin" })
                   }
-                  className="p-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+                  style={{
+                    padding: "var(--form-spacing-xs, 8px)",
+                    backgroundColor: "#2563EB",
+                    color: "white",
+                    border: "none",
+                    borderRadius: "var(--form-border-radius, 8px)",
+                    cursor: "pointer",
+                    transition: "all 0.2s ease",
+                  }}
                   whileHover={{ scale: 1.1 }}
                   whileTap={{ scale: 0.9 }}
                 >
@@ -363,7 +551,15 @@ export const PostSubmissionField: React.FC<PostSubmissionFieldProps> = ({
                 <motion.button
                   type="button"
                   onClick={() => handleAction("share", { platform: "email" })}
-                  className="p-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700 transition-colors"
+                  style={{
+                    padding: "var(--form-spacing-xs, 8px)",
+                    backgroundColor: "var(--form-color-secondary, #6B7280)",
+                    color: "white",
+                    border: "none",
+                    borderRadius: "var(--form-border-radius, 8px)",
+                    cursor: "pointer",
+                    transition: "all 0.2s ease",
+                  }}
                   whileHover={{ scale: 1.1 }}
                   whileTap={{ scale: 0.9 }}
                 >
@@ -378,15 +574,39 @@ export const PostSubmissionField: React.FC<PostSubmissionFieldProps> = ({
             <motion.div
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
-              className="bg-blue-50 border border-blue-200 rounded-lg p-4 max-w-md mx-auto"
+              style={{
+                backgroundColor: "var(--form-color-primary, #3B82F6)22",
+                border: `1px solid var(--form-color-primary, #3B82F6)44`,
+                borderRadius: "var(--form-border-radius, 8px)",
+                padding: "var(--form-spacing-md, 16px)",
+                maxWidth: "28rem",
+                margin: "0 auto",
+              }}
             >
-              <div className="text-sm text-blue-700">
+              <div
+                style={{
+                  color: "var(--form-color-primary, #3B82F6)",
+                  fontSize: "var(--form-font-size-small, 14px)",
+                  fontFamily:
+                    "var(--form-font-family-primary, Inter, system-ui, sans-serif)",
+                }}
+              >
                 Redirecting in {redirectCountdown} seconds...
               </div>
               <motion.button
                 type="button"
                 onClick={() => setRedirectCountdown(0)}
-                className="mt-2 text-xs text-blue-600 hover:text-blue-700 underline"
+                style={{
+                  marginTop: "var(--form-spacing-xs, 8px)",
+                  fontSize: "var(--form-font-size-small, 12px)",
+                  color: "var(--form-color-primary, #3B82F6)",
+                  background: "transparent",
+                  border: "none",
+                  textDecoration: "underline",
+                  cursor: "pointer",
+                  fontFamily:
+                    "var(--form-font-family-primary, Inter, system-ui, sans-serif)",
+                }}
                 whileHover={{ scale: 1.02 }}
               >
                 Go now
@@ -399,7 +619,12 @@ export const PostSubmissionField: React.FC<PostSubmissionFieldProps> = ({
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             transition={{ duration: 0.5, delay: 1 }}
-            className="text-sm text-gray-500"
+            style={{
+              color: "var(--form-color-text-secondary, #6B7280)",
+              fontSize: "var(--form-font-size-small, 14px)",
+              fontFamily:
+                "var(--form-font-family-primary, Inter, system-ui, sans-serif)",
+            }}
           >
             Thank you for taking the time to complete this form.
           </motion.div>

@@ -199,29 +199,6 @@ export const ColorsPanel: React.FC<ColorsPanelProps> = ({
             </p>
           </div>
 
-          {/* Background Color */}
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              Background Color
-            </label>
-            <div className="flex items-center gap-3">
-              <input
-                type="color"
-                value={colors.background || "#FFFFFF"}
-                onChange={(e) => onUpdate({ background: e.target.value })}
-                className="w-12 h-10 rounded-md border border-gray-300 cursor-pointer"
-              />
-              <input
-                type="text"
-                value={colors.background || "#FFFFFF"}
-                onChange={(e) => onUpdate({ background: e.target.value })}
-                className="flex-1 px-3 py-2 border border-gray-300 rounded-md text-sm"
-                placeholder="#FFFFFF"
-              />
-            </div>
-            <p className="text-xs text-gray-500 mt-1">Form background color</p>
-          </div>
-
           {/* Text Color */}
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">
@@ -378,32 +355,169 @@ export const ColorsPanel: React.FC<ColorsPanelProps> = ({
           </div>
         </div>
 
-        {/* Background Patterns (if pattern is selected) */}
+        {(colors.backgroundType || "solid") === "solid" && (
+          <div className="mb-4">
+            {/* Background Color */}
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Background Color
+              </label>
+              <div className="flex items-center gap-3">
+                <input
+                  type="color"
+                  value={colors.background || "#FFFFFF"}
+                  onChange={(e) => onUpdate({ background: e.target.value })}
+                  className="w-12 h-10 rounded-md border border-gray-300 cursor-pointer"
+                />
+                <input
+                  type="text"
+                  value={colors.background || "#FFFFFF"}
+                  onChange={(e) => onUpdate({ background: e.target.value })}
+                  className="flex-1 px-3 py-2 border border-gray-300 rounded-md text-sm"
+                  placeholder="#FFFFFF"
+                />
+              </div>
+              <p className="text-xs text-gray-500 mt-1">
+                Form background color
+              </p>
+            </div>
+          </div>
+        )}
+
+        {(colors.backgroundType || "solid") === "gradient" && (
+          <div className="mb-4">
+            <div className="grid grid-cols-2 gap-4">
+              {/* Gradient Color 1 */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Gradient Color 1
+                </label>
+                <div className="flex items-center gap-2">
+                  <input
+                    type="color"
+                    value={
+                      colors.backgroundGradientColor1 ||
+                      colors.primary ||
+                      "#3B82F6"
+                    }
+                    onChange={(e) =>
+                      onUpdate({
+                        backgroundGradientColor1: e.target.value,
+                        backgroundValue: `linear-gradient(${
+                          colors.backgroundGradientDirection || "135deg"
+                        }, ${e.target.value}, ${
+                          colors.backgroundGradientColor2 ||
+                          colors.secondary ||
+                          "#6B7280"
+                        })`,
+                      })
+                    }
+                    className="w-12 h-10 rounded-md border border-gray-300 cursor-pointer"
+                  />
+                  <input
+                    type="text"
+                    value={
+                      colors.backgroundGradientColor1 ||
+                      colors.primary ||
+                      "#3B82F6"
+                    }
+                    onChange={(e) =>
+                      onUpdate({
+                        backgroundGradientColor1: e.target.value,
+                        backgroundValue: `linear-gradient(${
+                          colors.backgroundGradientDirection || "135deg"
+                        }, ${e.target.value}, ${
+                          colors.backgroundGradientColor2 ||
+                          colors.secondary ||
+                          "#6B7280"
+                        })`,
+                      })
+                    }
+                    className="flex-1 px-3 py-2 border border-gray-300 rounded-md text-sm"
+                    placeholder="#3B82F6"
+                  />
+                </div>
+              </div>
+
+              {/* Gradient Color 2 */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Gradient Color 2
+                </label>
+                <div className="flex items-center gap-2">
+                  <input
+                    type="color"
+                    value={
+                      colors.backgroundGradientColor2 ||
+                      colors.secondary ||
+                      "#6B7280"
+                    }
+                    onChange={(e) =>
+                      onUpdate({
+                        backgroundGradientColor2: e.target.value,
+                        backgroundValue: `linear-gradient(${
+                          colors.backgroundGradientDirection || "135deg"
+                        }, ${
+                          colors.backgroundGradientColor1 ||
+                          colors.primary ||
+                          "#3B82F6"
+                        }, ${e.target.value})`,
+                      })
+                    }
+                    className="w-12 h-10 rounded-md border border-gray-300 cursor-pointer"
+                  />
+                  <input
+                    type="text"
+                    value={
+                      colors.backgroundGradientColor2 ||
+                      colors.secondary ||
+                      "#6B7280"
+                    }
+                    onChange={(e) =>
+                      onUpdate({
+                        backgroundGradientColor2: e.target.value,
+                        backgroundValue: `linear-gradient(${
+                          colors.backgroundGradientDirection || "135deg"
+                        }, ${
+                          colors.backgroundGradientColor1 ||
+                          colors.primary ||
+                          "#3B82F6"
+                        }, ${e.target.value})`,
+                      })
+                    }
+                    className="flex-1 px-3 py-2 border border-gray-300 rounded-md text-sm"
+                    placeholder="#6B7280"
+                  />
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Pattern Color Control (if pattern is selected) */}
         {(colors.backgroundType || "solid") === "pattern" && (
           <div className="mb-4">
             <label className="block text-sm font-medium text-gray-700 mb-2">
-              Pattern
+              Pattern Color
             </label>
-            <div className="grid grid-cols-4 gap-2">
-              {backgroundPatterns.map((pattern) => (
-                <button
-                  key={pattern.id}
-                  onClick={() => onUpdate({ backgroundPattern: pattern.id })}
-                  className={`
-              h-12 rounded border-2 transition-all
-              ${
-                colors.backgroundPattern === pattern.id
-                  ? "border-blue-500"
-                  : "border-gray-300 hover:border-gray-400"
-              }
-            `}
-                  style={{
-                    background: pattern.css,
-                    backgroundSize: "20px 20px",
-                  }}
-                  title={pattern.name}
-                />
-              ))}
+            <div className="flex items-center gap-3">
+              <input
+                type="color"
+                value={colors.backgroundPatternColor || "rgba(0, 0, 0, 0.05)"}
+                onChange={(e) =>
+                  onUpdate({ backgroundPatternColor: e.target.value })
+                }
+                className="w-12 h-10 rounded-md border border-gray-300 cursor-pointer"
+              />
+              <input
+                type="text"
+                value={colors.backgroundPatternColor || "rgba(0, 0, 0, 0.05)"}
+                onChange={(e) =>
+                  onUpdate({ backgroundPatternColor: e.target.value })
+                }
+                className="flex-1 px-3 py-2 border border-gray-300 rounded-md text-sm"
+                placeholder="rgba(0, 0, 0, 0.05)"
+              />
             </div>
           </div>
         )}

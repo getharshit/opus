@@ -99,7 +99,10 @@ export const NumberRatingField: React.FC<NumberRatingFieldProps> = ({
         >
           {/* Scale Labels */}
           {maxRating === 10 && (
-            <div className="flex justify-between text-xs text-gray-500 mb-3">
+            <div
+              className="flex justify-between text-xs mb-3"
+              style={{ color: "var(--form-text-secondary, #6B7280)" }}
+            >
               <span>{minRating} - Very Poor</span>
               <span>{maxRating} - Excellent</span>
             </div>
@@ -126,22 +129,27 @@ export const NumberRatingField: React.FC<NumberRatingFieldProps> = ({
                   className={`
                     relative w-12 h-12 rounded-full border-2 text-sm font-medium
                     transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2
-                    ${
-                      shouldHighlight
-                        ? "bg-blue-600 text-white border-blue-600"
-                        : hasError
-                        ? "border-red-300 text-red-600 hover:border-red-400"
-                        : "border-gray-300 text-gray-700 hover:border-blue-400 hover:text-blue-600"
-                    }
                   `}
+                  style={{
+                    backgroundColor: shouldHighlight
+                      ? "var(--form-color-primary, #3B82F6)"
+                      : "var(--form-background-color, #FFFFFF)",
+                    color: shouldHighlight
+                      ? "var(--form-background-color, #FFFFFF)"
+                      : hasError
+                      ? "var(--form-color-error, #EF4444)"
+                      : "var(--form-text-color, #1F2937)",
+                    borderColor: shouldHighlight
+                      ? "var(--form-color-primary, #3B82F6)"
+                      : hasError
+                      ? "var(--form-color-error, #EF4444)"
+                      : "var(--form-border-color, #D1D5DB)",
+                  }}
                   whileHover={{ scale: 1.1 }}
                   whileTap={{ scale: 0.95 }}
                   initial={false}
                   animate={{
                     scale: isSelected ? 1.05 : 1,
-                    backgroundColor: shouldHighlight
-                      ? "#2563EB"
-                      : "transparent",
                   }}
                   role="radio"
                   aria-checked={isSelected}
@@ -158,9 +166,17 @@ export const NumberRatingField: React.FC<NumberRatingFieldProps> = ({
                         initial={{ scale: 0 }}
                         animate={{ scale: 1 }}
                         exit={{ scale: 0 }}
-                        className="absolute -top-1 -right-1 w-4 h-4 bg-green-500 rounded-full flex items-center justify-center"
+                        className="absolute -top-1 -right-1 w-4 h-4 rounded-full flex items-center justify-center"
+                        style={{
+                          backgroundColor: "var(--form-color-success, #10B981)",
+                        }}
                       >
-                        <Star className="w-2 h-2 text-gray-900 placeholder-gray-500 fill-current" />
+                        <Star
+                          className="w-2 h-2 fill-current"
+                          style={{
+                            color: "var(--form-background-color, #FFFFFF)",
+                          }}
+                        />
                       </motion.div>
                     )}
                   </AnimatePresence>
@@ -178,11 +194,17 @@ export const NumberRatingField: React.FC<NumberRatingFieldProps> = ({
                 exit={{ opacity: 0, y: -10 }}
                 className="text-center mt-3"
               >
-                <div className="text-lg font-medium text-gray-900">
+                <div
+                  className="text-lg font-medium"
+                  style={{ color: "var(--form-text-color, #1F2937)" }}
+                >
                   {hoveredRating || currentRating} out of {maxRating}
                 </div>
                 {getRatingLabel(hoveredRating || currentRating) && (
-                  <div className="text-sm text-gray-600">
+                  <div
+                    className="text-sm"
+                    style={{ color: "var(--form-text-secondary, #6B7280)" }}
+                  >
                     {getRatingLabel(hoveredRating || currentRating)}
                   </div>
                 )}
@@ -195,7 +217,8 @@ export const NumberRatingField: React.FC<NumberRatingFieldProps> = ({
         <AnimatedErrorMessage isVisible={hasError}>
           <div
             id={`error-${field.id}`}
-            className="flex items-start gap-2 text-sm text-red-600"
+            className="flex items-start gap-2 text-sm"
+            style={{ color: "var(--form-color-error, #EF4444)" }}
             role="alert"
             aria-live="polite"
           >

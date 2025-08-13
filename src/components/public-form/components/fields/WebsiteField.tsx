@@ -78,13 +78,14 @@ export const WebsiteField: React.FC<WebsiteFieldProps> = ({
         >
           <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
             <Globe
-              className={`w-5 h-5 ${
-                hasError
-                  ? "text-red-400"
+              className="w-5 h-5"
+              style={{
+                color: hasError
+                  ? "var(--form-color-error, #EF4444)"
                   : isValid
-                  ? "text-green-400"
-                  : "text-gray-400"
-              }`}
+                  ? "var(--form-color-success, #10B981)"
+                  : "var(--form-text-secondary, #6B7280)",
+              }}
             />
           </div>
 
@@ -97,17 +98,29 @@ export const WebsiteField: React.FC<WebsiteFieldProps> = ({
             onBlur={handleBlur}
             className={`
               w-full pl-10 pr-10 py-3 text-base border rounded-lg
-              focus:ring-2 focus:ring-blue-500 focus:border-transparent
+              focus:ring-2 focus:border-transparent
               transition-colors duration-200
-              ${
-                hasError
-                  ? "border-red-500 bg-red-50"
-                  : isValid
-                  ? "border-green-500 bg-green-50"
-                  : "border-gray-300 hover:border-gray-400"
-              }
-              disabled:bg-gray-100 disabled:cursor-not-allowed
+              disabled:cursor-not-allowed
+              ${hasError ? "ring-2" : "focus:ring-2"}
             `}
+            style={
+              {
+                borderColor: hasError
+                  ? "var(--form-color-error, #EF4444)"
+                  : isValid
+                  ? "var(--form-color-success, #10B981)"
+                  : "var(--form-border-color, #D1D5DB)",
+                backgroundColor: hasError
+                  ? "var(--form-color-error-background, #FEF2F2)"
+                  : isValid
+                  ? "var(--form-color-success-background, #F0FDF4)"
+                  : "var(--form-background-color, #FFFFFF)",
+                color: "var(--form-text-color, #1F2937)",
+                "--tw-ring-color": hasError
+                  ? "var(--form-color-error, #EF4444)"
+                  : "var(--form-color-primary, #3B82F6)",
+              } as React.CSSProperties
+            }
             aria-invalid={hasError}
             aria-describedby={hasError ? `error-${field.id}` : undefined}
             autoComplete="url"
@@ -122,14 +135,28 @@ export const WebsiteField: React.FC<WebsiteFieldProps> = ({
                 transition={{ duration: 0.2 }}
                 className="flex items-center gap-1"
               >
-                <Check className="w-5 h-5 text-green-500" />
+                <Check
+                  className="w-5 h-5"
+                  style={{ color: "var(--form-color-success, #10B981)" }}
+                />
 
                 <a
                   href={controllerField.value}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="text-blue-500 hover:text-blue-700 transition-colors"
+                  className="transition-colors"
+                  style={{
+                    color: "var(--form-color-primary, #3B82F6)",
+                  }}
                   title="Open link in new tab"
+                  onMouseEnter={(e) => {
+                    e.currentTarget.style.color =
+                      "var(--form-color-primary-hover, #2563EB)";
+                  }}
+                  onMouseLeave={(e) => {
+                    e.currentTarget.style.color =
+                      "var(--form-color-primary, #3B82F6)";
+                  }}
                 >
                   <ExternalLink className="w-4 h-4" />
                 </a>
@@ -142,7 +169,8 @@ export const WebsiteField: React.FC<WebsiteFieldProps> = ({
         <AnimatedErrorMessage isVisible={hasError}>
           <div
             id={`error-${field.id}`}
-            className="flex items-start gap-2 text-sm text-red-600"
+            className="flex items-start gap-2 text-sm"
+            style={{ color: "var(--form-color-error, #EF4444)" }}
             role="alert"
             aria-live="polite"
           >
@@ -156,7 +184,8 @@ export const WebsiteField: React.FC<WebsiteFieldProps> = ({
           <motion.div
             initial={{ opacity: 0, y: -10 }}
             animate={{ opacity: 1, y: 0 }}
-            className="flex items-center justify-between text-sm text-green-600"
+            className="flex items-center justify-between text-sm"
+            style={{ color: "var(--form-color-success, #10B981)" }}
           >
             <div className="flex items-start gap-2">
               <Check className="w-4 h-4 flex-shrink-0 mt-0.5" />
@@ -167,7 +196,18 @@ export const WebsiteField: React.FC<WebsiteFieldProps> = ({
               href={controllerField.value}
               target="_blank"
               rel="noopener noreferrer"
-              className="text-blue-500 hover:text-blue-700 transition-colors flex items-center gap-1 text-xs"
+              className="flex items-center gap-1 text-xs transition-colors"
+              style={{
+                color: "var(--form-color-primary, #3B82F6)",
+              }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.color =
+                  "var(--form-color-primary-hover, #2563EB)";
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.color =
+                  "var(--form-color-primary, #3B82F6)";
+              }}
             >
               Preview <ExternalLink className="w-3 h-3" />
             </a>

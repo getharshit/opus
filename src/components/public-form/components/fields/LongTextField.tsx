@@ -87,16 +87,27 @@ export const LongTextField: React.FC<LongTextFieldProps> = ({
             rows={4}
             className={`
               w-full px-4 py-3 text-base border rounded-lg resize-none
-              focus:ring-2 focus:ring-blue-500 focus:border-transparent
+              focus:ring-2 focus:border-transparent
               transition-colors duration-200
-              ${
-                hasError
-                  ? "border-red-500 bg-red-50"
-                  : "border-gray-300 hover:border-gray-400"
-              }
-              disabled:bg-gray-100 disabled:cursor-not-allowed
+              disabled:cursor-not-allowed
+              ${hasError ? "ring-2" : "focus:ring-2"}
             `}
-            style={{ minHeight: "120px", maxHeight: "300px" }}
+            style={
+              {
+                minHeight: "120px",
+                maxHeight: "300px",
+                borderColor: hasError
+                  ? "var(--form-color-error, #EF4444)"
+                  : "var(--form-border-color, #D1D5DB)",
+                backgroundColor: hasError
+                  ? "var(--form-color-error-background, #FEF2F2)"
+                  : "var(--form-background-color, #FFFFFF)",
+                color: "var(--form-text-color, #1F2937)",
+                "--tw-ring-color": hasError
+                  ? "var(--form-color-error, #EF4444)"
+                  : "var(--form-color-primary, #3B82F6)",
+              } as React.CSSProperties
+            }
             aria-invalid={hasError}
             aria-describedby={hasError ? `error-${field.id}` : undefined}
           />
@@ -106,11 +117,13 @@ export const LongTextField: React.FC<LongTextFieldProps> = ({
         <div className="flex justify-between items-center text-xs">
           <div className="flex-1">{/* Error will be displayed here */}</div>
           <div
-            className={`character-counter ${
-              currentLength > maxLength * 0.9
-                ? "text-orange-600"
-                : "text-gray-500"
-            }`}
+            className="character-counter"
+            style={{
+              color:
+                currentLength > maxLength * 0.9
+                  ? "var(--form-color-warning, #F59E0B)"
+                  : "var(--form-text-secondary, #6B7280)",
+            }}
           >
             {currentLength}/{maxLength}
           </div>
@@ -120,7 +133,8 @@ export const LongTextField: React.FC<LongTextFieldProps> = ({
         <AnimatedErrorMessage isVisible={hasError}>
           <div
             id={`error-${field.id}`}
-            className="flex items-start gap-2 text-sm text-red-600"
+            className="flex items-start gap-2 text-sm"
+            style={{ color: "var(--form-color-error, #EF4444)" }}
             role="alert"
             aria-live="polite"
           >

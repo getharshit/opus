@@ -7,15 +7,15 @@ import { ColorsPanel } from "./ColorsPanel";
 import { TypographyPanel } from "./TypographyPanel";
 import { LayoutPanel } from "./LayoutPanel";
 import { AnimationPanel } from "./AnimationPanel";
-import { PreviewPanel } from "./PreviewPanel";
-import { LiveFormPreview } from "./LiveFormPreview";
+// REPLACE THIS IMPORT
+import { PublicFormRenderer } from "../../public-form/components/PublicFormRenderer";
 
 interface DesignStepProps {
   form: Form;
   onUpdate: (updates: Partial<Form>) => void;
 }
 
-type DesignTab = "colors" | "typography" | "layout" | "animations" | "preview";
+type DesignTab = "colors" | "typography" | "layout" | "animations";
 
 interface TabConfig {
   id: DesignTab;
@@ -49,12 +49,6 @@ const tabs: TabConfig[] = [
     icon: Zap,
     description: "Control form animations and interactions",
   },
-  {
-    id: "preview",
-    label: "Preview",
-    icon: Eye,
-    description: "Preview your form across devices",
-  },
 ];
 
 // Debounce utility function
@@ -83,6 +77,14 @@ export const DesignStep: React.FC<DesignStepProps> = ({ form, onUpdate }) => {
         border: "#D1D5DB",
         error: "#EF4444",
         success: "#10B981",
+        backgroundType: "solid",
+        backgroundValue: "#FFFFFF",
+        backgroundPattern: "none",
+        backgroundGradientDirection: "135deg",
+        backgroundGradientColor1: "#3B82F6",
+        backgroundGradientColor2: "#6B7280",
+        backgroundPatternColor: "rgba(0, 0, 0, 0.05)",
+        backgroundPatternSize: "20px",
       }
     );
   });
@@ -256,6 +258,12 @@ export const DesignStep: React.FC<DesignStepProps> = ({ form, onUpdate }) => {
     animations: localAnimations,
   };
 
+  // CREATE FORM WITH LOCAL CUSTOMIZATION FOR PREVIEW
+  const formWithLocalCustomization = {
+    ...form,
+    customization: customizationWithLocalState,
+  };
+
   const resetToDefaults = () => {
     const defaults = {
       colors: {
@@ -266,6 +274,14 @@ export const DesignStep: React.FC<DesignStepProps> = ({ form, onUpdate }) => {
         border: "#D1D5DB",
         error: "#EF4444",
         success: "#10B981",
+        backgroundType: "solid",
+        backgroundValue: "#FFFFFF",
+        backgroundPattern: "none",
+        backgroundGradientDirection: "135deg",
+        backgroundGradientColor1: "#3B82F6",
+        backgroundGradientColor2: "#6B7280",
+        backgroundPatternColor: "rgba(0, 0, 0, 0.05)",
+        backgroundPatternSize: "20px",
       },
       typography: {
         fontFamily: "Inter, system-ui, sans-serif",
@@ -277,12 +293,12 @@ export const DesignStep: React.FC<DesignStepProps> = ({ form, onUpdate }) => {
         borders: { radius: 8, width: 1 },
         shadows: { sm: "0 1px 2px 0 rgb(0 0 0 / 0.05)" },
         maxWidth: 600,
-        alignment: "center" as const, // Fix type issue
-        buttonStyle: "filled" as const, // Fix type issue
-        buttonSize: "md" as const, // Fix type issue
+        alignment: "center" as const,
+        buttonStyle: "filled" as const,
+        buttonSize: "md" as const,
       },
       animations: {
-        intensity: "moderate" as const, // Fix type issue
+        intensity: "moderate" as const,
         enableAnimations: true,
         respectReducedMotion: true,
       },
@@ -335,32 +351,7 @@ export const DesignStep: React.FC<DesignStepProps> = ({ form, onUpdate }) => {
             onUpdate={updateAnimations}
           />
         );
-      case "preview":
-        const formWithCustomization = {
-          ...form,
-          customization: {
-            ...form.customization,
-            colors: localColors,
-            typography: localTypography,
-            spacing: localLayout.spacing,
-            borders: localLayout.borders,
-            shadows: localLayout.shadows,
-            maxWidth: localLayout.maxWidth,
-            alignment: localLayout.alignment,
-            buttonStyle: localLayout.buttonStyle,
-            buttonSize: localLayout.buttonSize,
-            animations: {
-              intensity: localAnimations.intensity as
-                | "none"
-                | "subtle"
-                | "moderate"
-                | "playful",
-              enableAnimations: localAnimations.enableAnimations,
-              respectReducedMotion: localAnimations.respectReducedMotion,
-            },
-          },
-        };
-        return <PreviewPanel form={formWithCustomization} />;
+
       default:
         return <ColorsPanel colors={localColors} onUpdate={updateColors} />;
     }
@@ -438,7 +429,7 @@ export const DesignStep: React.FC<DesignStepProps> = ({ form, onUpdate }) => {
             </div>
           </div>
 
-          {/* Live Preview */}
+          {/* UPDATED LIVE PREVIEW - Now uses actual PublicFormRenderer */}
           <div className="col-span-5">
             <div className="sticky top-24">
               <div className="bg-white rounded-lg shadow-sm border border-gray-200">
@@ -447,18 +438,22 @@ export const DesignStep: React.FC<DesignStepProps> = ({ form, onUpdate }) => {
                     Live Preview
                   </h3>
                   <p className="text-xs text-gray-500 mt-1">
-                    See your changes in real-time
+                    See your changes in real-time (actual form preview)
                   </p>
                 </div>
 
-                <div className="p-4">
-                  <LiveFormPreview
-                    form={form}
-                    localColors={localColors}
-                    localTypography={localTypography}
-                    localLayout={localLayout}
-                    localAnimations={localAnimations}
-                  />
+                <div className="p-4 max-h-[60vh] overflow-y-auto">
+                  {/* Scale down the preview to fit in sidebar */}
+                  <div className="transform scale-75 origin-top-left w-[133%]">
+                    <PublicFormRenderer
+                      form={formWithLocalCustomization}
+                      onSubmit={async () => {
+                        // Prevent actual submission in preview
+                        console.log("Preview form submission (disabled)");
+                      }}
+                      readonly={true}
+                    />
+                  </div>
                 </div>
               </div>
             </div>

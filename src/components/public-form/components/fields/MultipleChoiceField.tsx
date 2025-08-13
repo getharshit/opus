@@ -134,17 +134,23 @@ export const MultipleChoiceField: React.FC<MultipleChoiceFieldProps> = ({
                 className="option-wrapper"
               >
                 <motion.label
-                  className={`
-                    relative flex items-center gap-3 p-4 rounded-lg border-2 cursor-pointer
-                    transition-all duration-200 group
-                    ${
-                      selected
-                        ? "border-blue-500 bg-blue-50"
+                  className="relative flex items-center gap-3 p-4 border-2 cursor-pointer transition-all duration-200 group focus:outline-none focus:ring-2 focus:ring-offset-2"
+                  style={
+                    {
+                      borderColor: selected
+                        ? "var(--form-color-primary, #3b82f6)"
                         : hasError
-                        ? "border-red-300 hover:border-red-400"
-                        : "border-gray-200 hover:border-blue-300 hover:bg-gray-50"
-                    }
-                  `}
+                        ? "var(--form-color-error, #ef4444)"
+                        : "var(--form-color-border, #d1d5db)",
+                      backgroundColor: selected
+                        ? "var(--form-color-primary, #3b82f6)10" // 10% opacity
+                        : hasError
+                        ? "var(--form-color-error, #ef4444)05" // 5% opacity
+                        : "var(--form-color-surface, #ffffff)",
+                      borderRadius: "var(--form-border-radius, 8px)",
+                      "--tw-ring-color": "var(--form-color-primary, #3b82f6)",
+                    } as React.CSSProperties
+                  }
                   whileHover={{ scale: 1.01 }}
                   whileTap={{ scale: 0.99 }}
                   onKeyDown={(e) => handleKeyDown(e, option, index)}
@@ -167,17 +173,22 @@ export const MultipleChoiceField: React.FC<MultipleChoiceFieldProps> = ({
                     />
 
                     <motion.div
-                      className={`
-                        w-5 h-5 rounded-full border-2 flex items-center justify-center
-                        ${
-                          selected
-                            ? "border-blue-500 bg-blue-500"
-                            : "border-gray-300 group-hover:border-blue-400"
-                        }
-                      `}
+                      className="w-5 h-5 rounded-full border-2 flex items-center justify-center"
+                      style={{
+                        borderColor: selected
+                          ? "var(--form-color-primary, #3b82f6)"
+                          : "var(--form-color-border, #d1d5db)",
+                        backgroundColor: selected
+                          ? "var(--form-color-primary, #3b82f6)"
+                          : "transparent",
+                      }}
                       animate={{
-                        borderColor: selected ? "#3B82F6" : "#D1D5DB",
-                        backgroundColor: selected ? "#3B82F6" : "transparent",
+                        borderColor: selected
+                          ? "var(--form-color-primary, #3b82f6)"
+                          : "var(--form-color-border, #d1d5db)",
+                        backgroundColor: selected
+                          ? "var(--form-color-primary, #3b82f6)"
+                          : "transparent",
                       }}
                       transition={{ duration: 0.2 }}
                     >
@@ -189,7 +200,7 @@ export const MultipleChoiceField: React.FC<MultipleChoiceFieldProps> = ({
                             exit={{ scale: 0 }}
                             transition={{ duration: 0.15 }}
                           >
-                            <Check className="w-3 h-3 text-gray-900 placeholder-gray-500" />
+                            <Check className="w-3 h-3 text-white" />
                           </motion.div>
                         )}
                       </AnimatePresence>
@@ -198,10 +209,15 @@ export const MultipleChoiceField: React.FC<MultipleChoiceFieldProps> = ({
 
                   {/* Option Text */}
                   <span
-                    className={`
-                    flex-1 text-gray-700 font-medium
-                    ${selected ? "text-blue-700" : ""}
-                  `}
+                    className="flex-1 font-medium"
+                    style={{
+                      color: selected
+                        ? "var(--form-color-primary, #3b82f6)"
+                        : "var(--form-color-text, #374151)",
+                      fontSize: "var(--form-font-size-input, 16px)",
+                      fontFamily: "var(--form-font-family, inherit)",
+                      fontWeight: "var(--form-font-weight-medium, 500)",
+                    }}
                   >
                     {isOtherOption ? (
                       <span className="flex items-center gap-2">
@@ -220,9 +236,12 @@ export const MultipleChoiceField: React.FC<MultipleChoiceFieldProps> = ({
                         initial={{ scale: 0, opacity: 0 }}
                         animate={{ scale: 1, opacity: 1 }}
                         exit={{ scale: 0, opacity: 0 }}
-                        className="absolute -top-2 -right-2 w-6 h-6 bg-green-500 rounded-full flex items-center justify-center"
+                        className="absolute -top-2 -right-2 w-6 h-6 rounded-full flex items-center justify-center"
+                        style={{
+                          backgroundColor: "var(--form-color-success, #10b981)",
+                        }}
                       >
-                        <Check className="w-3 h-3 text-gray-900 placeholder-gray-500" />
+                        <Check className="w-3 h-3 text-white" />
                       </motion.div>
                     )}
                   </AnimatePresence>
@@ -246,7 +265,17 @@ export const MultipleChoiceField: React.FC<MultipleChoiceFieldProps> = ({
                           onChange={(e) =>
                             handleOtherInputChange(e.target.value)
                           }
-                          className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                          className="w-full px-3 py-2 border focus:ring-2 focus:outline-none"
+                          style={
+                            {
+                              borderColor: "var(--form-color-border, #d1d5db)",
+                              borderRadius: "var(--form-border-radius, 6px)",
+                              fontSize: "var(--form-font-size-input, 16px)",
+                              fontFamily: "var(--form-font-family, inherit)",
+                              "--tw-ring-color":
+                                "var(--form-color-primary, #3b82f6)",
+                            } as React.CSSProperties
+                          }
                           autoFocus
                         />
                       </motion.div>
@@ -262,9 +291,13 @@ export const MultipleChoiceField: React.FC<MultipleChoiceFieldProps> = ({
         <AnimatedErrorMessage isVisible={hasError}>
           <div
             id={`error-${field.id}`}
-            className="flex items-start gap-2 text-sm text-red-600"
+            className="flex items-start gap-2 text-sm"
             role="alert"
             aria-live="polite"
+            style={{
+              color: "var(--form-color-error, #ef4444)",
+              fontSize: "var(--form-font-size-small, 14px)",
+            }}
           >
             <AlertCircle className="w-4 h-4 flex-shrink-0 mt-0.5" />
             <span>{error?.message}</span>
