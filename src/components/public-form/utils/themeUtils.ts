@@ -3,10 +3,32 @@ import type { FormCustomization } from "@/types/form";
 /**
  * Converts form customization to CSS custom properties
  */
+
+function generateBackgroundPattern(patternType?: string, patternColor?: string): string {
+  if (!patternType || patternType === 'none') return 'none';
+  
+  // FIX: Use a more visible default color
+  const color = patternColor || 'rgba(0, 0, 0, 0.1)'; // Changed from 0.05 to 0.1
+  
+  switch (patternType) {
+    case 'dots':
+      return `radial-gradient(circle, ${color} 1px, transparent 1px)`;
+    case 'grid':
+      return `linear-gradient(${color} 1px, transparent 1px), linear-gradient(90deg, ${color} 1px, transparent 1px)`;
+    case 'diagonal':
+      return `repeating-linear-gradient(45deg, transparent, transparent 10px, ${color} 10px, ${color} 20px)`;
+    case 'waves':
+      return `repeating-linear-gradient(90deg, transparent, transparent 20px, ${color} 20px, ${color} 40px)`;
+    default:
+      return 'none';
+  }
+}
+
 export function convertCustomizationToCSS(customization?: FormCustomization): Record<string, string> {
   if (!customization) return {};
 
   const cssProperties: Record<string, string> = {};
+
 
   // Colors - using the simple structure from main types
   if (customization.colors) {
@@ -22,6 +44,21 @@ export function convertCustomizationToCSS(customization?: FormCustomization): Re
     if (colors.error) cssProperties['--form-color-error'] = colors.error;
     if (colors.success) cssProperties['--form-color-success'] = colors.success;
     if (colors.warning) cssProperties['--form-color-warning'] = colors.warning;
+     // ADD ALL THE MISSING BACKGROUND PROPERTIES:
+  if (colors.backgroundType) cssProperties['--form-background-type'] = colors.backgroundType;
+  if (colors.backgroundValue) cssProperties['--form-background-value'] = colors.backgroundValue;
+  if (colors.backgroundPattern) {
+    // Generate pattern CSS
+    cssProperties['--form-background-pattern'] = generateBackgroundPattern(
+      colors.backgroundPattern, 
+      colors.backgroundPatternColor
+    );
+  }
+  if (colors.backgroundPatternColor) cssProperties['--form-background-pattern-color'] = colors.backgroundPatternColor;
+  if (colors.backgroundPatternSize) cssProperties['--form-background-pattern-size'] = colors.backgroundPatternSize;
+  if (colors.backgroundGradientDirection) cssProperties['--form-background-gradient-direction'] = colors.backgroundGradientDirection;
+  if (colors.backgroundGradientColor1) cssProperties['--form-background-gradient-color1'] = colors.backgroundGradientColor1;
+  if (colors.backgroundGradientColor2) cssProperties['--form-background-gradient-color2'] = colors.backgroundGradientColor2;
   }
 
   // Typography - using the Record<string, number> structure
@@ -119,6 +156,20 @@ export function generateThemeStyle(customization?: FormCustomization): React.CSS
  */
 export function createThemeWrapperStyle(customization?: FormCustomization): React.CSSProperties {
   const baseStyle = generateThemeStyle(customization);
+  const backgroundStyle: React.CSSProperties = {};
+  
+  if (customization?.colors?.backgroundType === 'gradient' && customization?.colors?.backgroundValue) {
+    backgroundStyle.background = customization.colors.backgroundValue;
+  } else if (customization?.colors?.backgroundType === 'pattern') {
+    backgroundStyle.backgroundColor = customization?.colors?.background || '#ffffff';
+    backgroundStyle.backgroundImage = generateBackgroundPattern(
+      customization?.colors?.backgroundPattern,
+      customization?.colors?.backgroundPatternColor
+    );
+    backgroundStyle.backgroundSize = customization?.colors?.backgroundPatternSize || '20px';
+  } else {
+    backgroundStyle.backgroundColor = customization?.colors?.background || '#ffffff';
+  }
   
   return {
     ...baseStyle,

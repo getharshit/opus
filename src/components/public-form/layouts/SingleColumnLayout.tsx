@@ -1,6 +1,12 @@
 "use client";
 
-import React, { useState, useEffect, useRef, useCallback } from "react";
+import React, {
+  useState,
+  useEffect,
+  useRef,
+  useCallback,
+  useMemo,
+} from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { ExtendedForm, FormState, NavigationConfig } from "../types";
 import { useFormContext } from "../providers/FormProvider";
@@ -30,6 +36,71 @@ export const SingleColumnLayout: React.FC<SingleColumnLayoutProps> = ({
   state,
   children,
 }) => {
+  const [backgroundStyle, setBackgroundStyle] = useState<React.CSSProperties>(
+    {}
+  );
+
+  useEffect(() => {
+    const updateBackground = () => {
+      const root = document.documentElement;
+      const computedStyle = getComputedStyle(root);
+
+      const backgroundType = computedStyle
+        .getPropertyValue("--form-background-type")
+        .trim()
+        .replace(/['"]/g, "");
+      const backgroundValue = computedStyle
+        .getPropertyValue("--form-background-value")
+        .trim()
+        .replace(/['"]/g, "");
+      const backgroundPattern = computedStyle
+        .getPropertyValue("--form-background-pattern")
+        .trim()
+        .replace(/['"]/g, "");
+
+      console.log("🎨 Background update:", {
+        backgroundType,
+        backgroundValue,
+        backgroundPattern,
+      });
+
+      let newStyle: React.CSSProperties = {};
+
+      if (backgroundType === "gradient") {
+        newStyle = {
+          background: backgroundValue,
+          backgroundImage: "none",
+        };
+      } else if (backgroundType === "pattern") {
+        const backgroundColor = computedStyle
+          .getPropertyValue("--form-color-background")
+          .trim()
+          .replace(/['"]/g, "");
+        newStyle = {
+          backgroundColor: backgroundColor || "#ffffff",
+          backgroundImage:
+            backgroundPattern !== "none" ? backgroundPattern : "none",
+          backgroundSize: "20px",
+          backgroundRepeat: "repeat",
+        };
+      } else {
+        newStyle = {
+          backgroundColor: backgroundValue || "#ffffff",
+        };
+      }
+
+      setBackgroundStyle(newStyle);
+    };
+
+    // Update immediately
+    updateBackground();
+
+    // Poll for changes every 500ms
+    const interval = setInterval(updateBackground, 500);
+
+    return () => clearInterval(interval);
+  }, []);
+
   const {
     currentStepFields,
     formState,
@@ -243,14 +314,7 @@ export const SingleColumnLayout: React.FC<SingleColumnLayoutProps> = ({
   }
 
   return (
-    <div
-      className="single-column-layout min-h-screen"
-      style={{
-        background:
-          "var(--form-background-value, var(--form-color-background, #f9fafb))",
-        backgroundImage: "var(--form-background-pattern, none)",
-      }}
-    >
+    <div className="single-column-layout min-h-screen" style={backgroundStyle}>
       {/* Progress Header */}
       <div
         className="sticky top-0 z-40 shadow-sm"

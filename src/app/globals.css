@@ -35,3 +35,25 @@ body {
 .animate-slide-in {
   animation: slide-in 0.3s ease-out;
 }
+
+.public-form-container,
+.form-layout,
+.single-column-layout,
+.multi-step-layout {
+  background: var(--form-background-value, var(--form-color-background, #ffffff));
+  background-image: var(--form-background-pattern, none);
+  background-size: var(--form-background-pattern-size, 20px);
+  background-repeat: repeat;
+}
+
+/* Ensure patterns repeat correctly */
+[data-background-pattern="true"] {
+  background-repeat: repeat;
+}
+
+/* Override any conflicting background styles */
+.form-background-override {
+  background: var(--form-background-value) !important;
+  background-image: var(--form-background-pattern) !important;
+  background-size: var(--form-background-pattern-size) !important;
+}

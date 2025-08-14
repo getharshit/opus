@@ -35,6 +35,23 @@ export const MultiStepLayout: React.FC<MultiStepLayoutProps> = ({
   state,
   progressConfig,
 }) => {
+  React.useEffect(() => {
+    console.log("🖼️ MultiStep CSS Properties:", {
+      "background-value": getComputedStyle(
+        document.documentElement
+      ).getPropertyValue("--form-background-value"),
+      "background-pattern": getComputedStyle(
+        document.documentElement
+      ).getPropertyValue("--form-background-pattern"),
+      "background-type": getComputedStyle(
+        document.documentElement
+      ).getPropertyValue("--form-background-type"),
+      "pattern-size": getComputedStyle(
+        document.documentElement
+      ).getPropertyValue("--form-background-pattern-size"),
+    });
+  }, []);
+
   const {
     formMethods,
     formState,
@@ -396,6 +413,8 @@ export const MultiStepLayout: React.FC<MultiStepLayoutProps> = ({
         background:
           "var(--form-background-value, var(--form-color-background, #f9fafb))",
         backgroundImage: "var(--form-background-pattern, none)",
+        backgroundSize:
+          "var(--form-background-pattern-size, 20px) var(--form-background-pattern-size, 20px)",
       }}
     >
       {/* Progress Restored Notification */}

@@ -6,11 +6,45 @@ import { TypographyCSSGenerator } from './typography/cssGenerator';
 /**
  * Enhanced CSS properties generator with typography integration
  */
+
+// Add this function at the top of the file, before the themeToCSSProperties function:
+const generateBackgroundPattern = (patternType?: string, patternColor?: string): string => {
+  if (!patternType || patternType === 'none') return 'none';
+  
+  const color = patternColor || '#00000';
+  
+  switch (patternType) {
+    case 'dots':
+      return `radial-gradient(circle, ${color} 1px, transparent 1px)`;
+    case 'grid':
+      return `linear-gradient(${color} 1px, transparent 1px), linear-gradient(90deg, ${color} 1px, transparent 1px)`;
+    case 'diagonal':
+      return `repeating-linear-gradient(45deg, transparent, transparent 10px, ${color} 10px, ${color} 20px)`;
+    case 'waves':
+      return `repeating-linear-gradient(90deg, transparent, transparent 20px, ${color} 20px, ${color} 40px)`;
+    default:
+      return 'none';
+  }
+};
+
 export const themeToCSSProperties = (theme: Theme): CSSCustomProperties => {
+
+  console.log('🔧 CSS Generator received:', {
+    themeKeys: Object.keys(theme),
+    hasCustomization: !!(theme as any).customization,
+    customizationKeys: Object.keys((theme as any).customization || {}),
+    backgroundType: (theme as any).customization?.colors?.backgroundType,
+    themeColorsBackground: theme.colors?.background,
+    customizationColorsBackground: (theme as any).customization?.colors?.backgroundType
+  });
+
+
   // Safety helper function
   const safeString = (value: any, fallback: string = ''): string => {
     return value !== undefined && value !== null ? value.toString() : fallback;
   };
+  const customization = (theme as any).customization; // Cast to handle Form vs Theme difference
+  const colors = customization?.colors || theme.colors || {};
 
   const safeNumber = (value: any, fallback: number = 0): number => {
     return value !== undefined && value !== null && !isNaN(Number(value)) ? Number(value) : fallback;
@@ -48,14 +82,18 @@ export const themeToCSSProperties = (theme: Theme): CSSCustomProperties => {
     '--form-color-info': theme.colors?.info || '#3b82f6',
     '--form-color-info-hover': theme.colors?.infoHover || '#2563eb',
 
-    '--form-background-type': theme.colors?.backgroundType || 'solid',
-'--form-background-value': theme.colors?.backgroundValue || theme.colors?.background || '#ffffff',
-'--form-background-pattern': theme.colors?.backgroundPattern || 'none',
-'--form-background-gradient-direction': theme.colors?.backgroundGradientDirection || '135deg',
-'--form-background-gradient-color1': theme.colors?.backgroundGradientColor1 || theme.colors?.primary || '#3b82f6',
-'--form-background-gradient-color2': theme.colors?.backgroundGradientColor2 || theme.colors?.secondary || '#6b7280',
-'--form-background-pattern-color': theme.colors?.backgroundPatternColor || 'rgba(0, 0, 0, 0.05)',
-'--form-background-pattern-size': theme.colors?.backgroundPatternSize || '20px',
+// Find the background properties section and update it:
+'--form-background-type': colors.backgroundType || 'solid',
+'--form-background-value': colors.backgroundValue || colors.background || '#ffffff',
+'--form-background-pattern': generateBackgroundPattern(
+  colors.backgroundPattern, 
+  colors.backgroundPatternColor
+) || 'none',
+'--form-background-pattern-color': colors.backgroundPatternColor || 'rgba(0, 0, 0, 0.05)',
+'--form-background-pattern-size': colors.backgroundPatternSize || '20px',
+'--form-background-gradient-direction': colors.backgroundGradientDirection || '135deg',
+'--form-background-gradient-color1': colors.backgroundGradientColor1 || colors.primary || '#3b82f6',
+'--form-background-gradient-color2': colors.backgroundGradientColor2 || colors.secondary || '#6b7280',
     
     // Basic Typography (for backward compatibility)
     '--form-font-family': theme.typography?.fontFamily || 'Inter, system-ui, sans-serif',
