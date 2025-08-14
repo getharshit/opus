@@ -49,19 +49,20 @@ export const StartingPageField: React.FC<StartingPageFieldProps> = ({
 
   return (
     <div
-      className={`starting-page-field min-h-screen ${className}`}
+      className={`starting-page-field  ${className}`}
       style={{
         background: `linear-gradient(135deg, var(--form-color-primary-background, #EFF6FF) 0%, var(--form-background-color, #FFFFFF) 50%, var(--form-color-primary-light, #DBEAFE) 100%)`,
       }}
     >
-      <div className="max-w-4xl mx-auto px-4 py-12 flex items-center justify-center min-h-screen">
+      {/* MOBILE-OPTIMIZED: Responsive container with mobile-first padding */}
+      <div className="max-w-4xl mx-auto sm:px-6 lg:px-8 py-8 sm:py-12 flex items-center justify-center">
         <motion.div
           initial={{ opacity: 0, y: 40 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6, ease: "easeOut" }}
-          className="text-center space-y-8"
+          className="text-center space-y-6 sm:space-y-8 w-full"
         >
-          {/* Logo */}
+          {/* Logo - MOBILE-OPTIMIZED: Smaller on mobile */}
           {logoUrl && (
             <motion.div
               initial={{ opacity: 0, scale: 0.8 }}
@@ -72,18 +73,18 @@ export const StartingPageField: React.FC<StartingPageFieldProps> = ({
               <img
                 src={logoUrl}
                 alt="Logo"
-                className="h-16 w-auto object-contain"
+                className="h-12 sm:h-16 w-auto object-contain"
               />
             </motion.div>
           )}
 
-          {/* Main Content */}
-          <div className="space-y-6">
+          {/* Main Content - MOBILE-OPTIMIZED: Responsive typography */}
+          <div className="space-y-4 sm:space-y-6">
             <motion.h1
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.5, delay: 0.2 }}
-              className="text-4xl md:text-5xl font-bold leading-tight"
+              className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-bold leading-tight px-2"
               style={{ color: "var(--form-text-color, #1F2937)" }}
             >
               {form.title}
@@ -94,7 +95,7 @@ export const StartingPageField: React.FC<StartingPageFieldProps> = ({
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.5, delay: 0.3 }}
-                className="text-xl max-w-2xl mx-auto leading-relaxed"
+                className="text-base sm:text-lg lg:text-xl max-w-2xl mx-auto leading-relaxed px-2"
                 style={{ color: "var(--form-text-secondary, #6B7280)" }}
               >
                 {form.description}
@@ -106,51 +107,51 @@ export const StartingPageField: React.FC<StartingPageFieldProps> = ({
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.5, delay: 0.4 }}
-                className="prose prose-lg mx-auto"
+                className="prose prose-sm sm:prose-base lg:prose-lg mx-auto px-2"
                 style={{ color: "var(--form-text-color, #374151)" }}
                 dangerouslySetInnerHTML={{ __html: field.description }}
               />
             )}
           </div>
 
-          {/* Form Info Cards */}
+          {/* Form Info Cards - MOBILE-OPTIMIZED: Stack on mobile, responsive grid */}
           <motion.div
             initial={{ opacity: 0, y: 30 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.5, delay: 0.5 }}
-            className="grid grid-cols-1 md:grid-cols-3 gap-4 max-w-2xl mx-auto"
+            className=" gap-3 sm:gap-4 max-w-2xl mx-auto"
           >
-            {/* Time Estimate */}
+            {/* Time Estimate - MOBILE-OPTIMIZED: Larger touch targets */}
             <div
-              className="backdrop-blur-sm rounded-lg p-4 border"
+              className="backdrop-blur-sm rounded-lg p-4 sm:p-5 border min-h-[80px] flex items-center"
               style={{
                 backgroundColor:
                   "var(--form-background-color, rgba(255, 255, 255, 0.8))",
                 borderColor: "var(--form-border-color, #E5E7EB)",
               }}
             >
-              <div className="flex items-center gap-3">
+              <div className="flex items-center gap-3 w-full">
                 <div
-                  className="w-10 h-10 rounded-lg flex items-center justify-center"
+                  className="w-10 h-10 sm:w-12 sm:h-12 rounded-lg flex items-center justify-center flex-shrink-0"
                   style={{
                     backgroundColor:
                       "var(--form-color-primary-background, #EFF6FF)",
                   }}
                 >
                   <Clock
-                    className="w-5 h-5"
+                    className="w-5 h-5 sm:w-6 sm:h-6"
                     style={{ color: "var(--form-color-primary, #3B82F6)" }}
                   />
                 </div>
-                <div className="text-left">
+                <div className="text-left flex-1">
                   <div
-                    className="text-sm"
+                    className="text-xs sm:text-sm"
                     style={{ color: "var(--form-text-secondary, #6B7280)" }}
                   >
                     Estimated time
                   </div>
                   <div
-                    className="font-medium"
+                    className="font-medium text-sm sm:text-base"
                     style={{ color: "var(--form-text-color, #1F2937)" }}
                   >
                     {estimatedTime}
@@ -159,38 +160,38 @@ export const StartingPageField: React.FC<StartingPageFieldProps> = ({
               </div>
             </div>
 
-            {/* Steps Count */}
+            {/* Steps Count - MOBILE-OPTIMIZED: Show on mobile if more than 1 step */}
             {totalSteps > 1 && (
               <div
-                className="backdrop-blur-sm rounded-lg p-4 border"
+                className="backdrop-blur-sm rounded-lg p-4 sm:p-5 border min-h-[80px] flex items-center"
                 style={{
                   backgroundColor:
                     "var(--form-background-color, rgba(255, 255, 255, 0.8))",
                   borderColor: "var(--form-border-color, #E5E7EB)",
                 }}
               >
-                <div className="flex items-center gap-3">
+                <div className="flex items-center gap-3 w-full">
                   <div
-                    className="w-10 h-10 rounded-lg flex items-center justify-center"
+                    className="w-10 h-10 sm:w-12 sm:h-12 rounded-lg flex items-center justify-center flex-shrink-0"
                     style={{
                       backgroundColor:
                         "var(--form-color-success-background, #F0FDF4)",
                     }}
                   >
                     <Play
-                      className="w-5 h-5"
+                      className="w-5 h-5 sm:w-6 sm:h-6"
                       style={{ color: "var(--form-color-success, #10B981)" }}
                     />
                   </div>
-                  <div className="text-left">
+                  <div className="text-left flex-1">
                     <div
-                      className="text-sm"
+                      className="text-xs sm:text-sm"
                       style={{ color: "var(--form-text-secondary, #6B7280)" }}
                     >
                       Total steps
                     </div>
                     <div
-                      className="font-medium"
+                      className="font-medium text-sm sm:text-base"
                       style={{ color: "var(--form-text-color, #1F2937)" }}
                     >
                       {totalSteps} sections
@@ -200,41 +201,41 @@ export const StartingPageField: React.FC<StartingPageFieldProps> = ({
               </div>
             )}
 
-            {/* Participant Count */}
+            {/* Participant Count - MOBILE-OPTIMIZED: Responsive sizing */}
             {participantCount && (
               <div
-                className="backdrop-blur-sm rounded-lg p-4 border"
+                className="backdrop-blur-sm rounded-lg p-4 sm:p-5 border min-h-[80px] flex items-center sm:col-span-2 lg:col-span-1"
                 style={{
                   backgroundColor:
                     "var(--form-background-color, rgba(255, 255, 255, 0.8))",
                   borderColor: "var(--form-border-color, #E5E7EB)",
                 }}
               >
-                <div className="flex items-center gap-3">
+                <div className="flex items-center gap-3 w-full">
                   <div
-                    className="w-10 h-10 rounded-lg flex items-center justify-center"
+                    className="w-10 h-10 sm:w-12 sm:h-12 rounded-lg flex items-center justify-center flex-shrink-0"
                     style={{
                       backgroundColor:
                         "var(--form-color-secondary-background, #F3F4F6)",
                     }}
                   >
                     <Users
-                      className="w-5 h-5"
+                      className="w-5 h-5 sm:w-6 sm:h-6"
                       style={{ color: "var(--form-color-secondary, #6B7280)" }}
                     />
                   </div>
-                  <div className="text-left">
+                  <div className="text-left flex-1">
                     <div
-                      className="text-sm"
+                      className="text-xs sm:text-sm"
                       style={{ color: "var(--form-text-secondary, #6B7280)" }}
                     >
                       Participants
                     </div>
                     <div
-                      className="font-medium"
+                      className="font-medium text-sm sm:text-base"
                       style={{ color: "var(--form-text-color, #1F2937)" }}
                     >
-                      {participantCount}+ responses
+                      {participantCount.toLocaleString()}+ responses
                     </div>
                   </div>
                 </div>
@@ -242,28 +243,28 @@ export const StartingPageField: React.FC<StartingPageFieldProps> = ({
             )}
           </motion.div>
 
-          {/* Features List */}
+          {/* Features List - MOBILE-OPTIMIZED: Responsive layout */}
           {features.length > 0 && (
             <motion.div
               initial={{ opacity: 0, y: 30 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.5, delay: 0.6 }}
-              className="space-y-3"
+              className="space-y-3 sm:space-y-4"
             >
               <h3
-                className="text-lg font-medium"
+                className="text-base sm:text-lg font-medium"
                 style={{ color: "var(--form-text-color, #1F2937)" }}
               >
                 What to expect:
               </h3>
-              <div className="flex flex-wrap justify-center gap-3">
+              <div className="flex flex-wrap justify-center gap-2 sm:gap-3 px-4">
                 {features.map((feature, index) => (
                   <motion.div
-                    key={index}
+                    key={`feature-${index}-${feature}`} // Fix for potential duplicate keys
                     initial={{ opacity: 0, scale: 0.8 }}
                     animate={{ opacity: 1, scale: 1 }}
                     transition={{ duration: 0.3, delay: 0.7 + index * 0.1 }}
-                    className="flex items-center gap-2 backdrop-blur-sm rounded-full px-4 py-2 border"
+                    className="flex items-center gap-2 backdrop-blur-sm rounded-full px-3 sm:px-4 py-2 border min-h-[44px]" // 44px minimum touch target
                     style={{
                       backgroundColor:
                         "var(--form-background-color, rgba(255, 255, 255, 0.8))",
@@ -271,11 +272,11 @@ export const StartingPageField: React.FC<StartingPageFieldProps> = ({
                     }}
                   >
                     <Shield
-                      className="w-4 h-4"
+                      className="w-4 h-4 flex-shrink-0"
                       style={{ color: "var(--form-color-success, #10B981)" }}
                     />
                     <span
-                      className="text-sm"
+                      className="text-xs sm:text-sm"
                       style={{ color: "var(--form-text-color, #374151)" }}
                     >
                       {feature}
@@ -286,18 +287,18 @@ export const StartingPageField: React.FC<StartingPageFieldProps> = ({
             </motion.div>
           )}
 
-          {/* Start Button */}
+          {/* Start Button - MOBILE-OPTIMIZED: Larger touch target, responsive text */}
           <motion.div
             initial={{ opacity: 0, y: 30 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.5, delay: 0.8 }}
-            className="pt-4"
+            className="pt-4 sm:pt-6"
           >
             <motion.button
               type="button"
               onClick={handleStart}
               onKeyDown={handleKeyDown}
-              className="group relative inline-flex items-center gap-3 px-8 py-4 font-semibold rounded-xl shadow-lg hover:shadow-xl transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2"
+              className="group relative inline-flex items-center justify-center gap-2 sm:gap-3 px-6 sm:px-8 py-4 sm:py-5 font-semibold rounded-xl shadow-lg hover:shadow-xl transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2 min-h-[56px] w-full sm:w-auto min-w-[450px]" // Minimum 56px height for touch
               style={
                 {
                   backgroundColor:
@@ -305,13 +306,14 @@ export const StartingPageField: React.FC<StartingPageFieldProps> = ({
                   color: "var(--form-background-color, #FFFFFF)",
                   "--tw-ring-color":
                     primaryColor || "var(--form-color-primary, #3B82F6)",
+                  fontSize: "16px", // Prevent zoom on iOS
                 } as React.CSSProperties
               }
               whileHover={{ scale: 1.02, y: -2 }}
               whileTap={{ scale: 0.98 }}
             >
-              <Play className="w-5 h-5" />
-              <span>Start {form.title}</span>
+              <span className="text-sm sm:text-base font-semibold">Start</span>
+
               <motion.div
                 className="flex items-center"
                 animate={{ x: [0, 4, 0] }}
@@ -321,22 +323,24 @@ export const StartingPageField: React.FC<StartingPageFieldProps> = ({
                   ease: "easeInOut",
                 }}
               >
-                <ArrowRight className="w-5 h-5" />
+                <ArrowRight className="w-5 h-5 flex-shrink-0" />
               </motion.div>
             </motion.button>
           </motion.div>
 
-          {/* Privacy Notice */}
+          {/* Privacy Notice - MOBILE-OPTIMIZED: Responsive text */}
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             transition={{ duration: 0.5, delay: 1 }}
-            className="text-sm max-w-md mx-auto"
+            className="text-xs sm:text-sm max-w-md mx-auto px-4"
             style={{ color: "var(--form-text-secondary, #6B7280)" }}
           >
-            <div className="flex items-center justify-center gap-1">
-              <Shield className="w-4 h-4" />
-              <span>Your responses are secure and confidential</span>
+            <div className="flex items-center justify-center gap-1 sm:gap-2">
+              <Shield className="w-3 h-3 sm:w-4 sm:h-4 flex-shrink-0" />
+              <span className="text-center">
+                Your responses are secure and confidential
+              </span>
             </div>
           </motion.div>
         </motion.div>

@@ -29,7 +29,6 @@ export function convertCustomizationToCSS(customization?: FormCustomization): Re
 
   const cssProperties: Record<string, string> = {};
 
-
   // Colors - using the simple structure from main types
   if (customization.colors) {
     const { colors } = customization;
@@ -140,6 +139,56 @@ export function convertCustomizationToCSS(customization?: FormCustomization): Re
     cssProperties['--form-logo-size'] = `${customization.logoSize}px`;
   }
 
+  // Button styling properties
+if (customization.buttonStyle) {
+  cssProperties['--form-button-style'] = customization.buttonStyle;
+}
+
+if (customization.buttonSize) {
+  cssProperties['--form-button-size'] = customization.buttonSize;
+  
+  // Add size-specific properties
+  const buttonSizes = {
+    sm: { padding: '0.5rem 1rem', fontSize: '0.875rem' },
+    md: { padding: '0.75rem 1.5rem', fontSize: '1rem' },
+    lg: { padding: '1rem 2rem', fontSize: '1.125rem' }
+  };
+  
+  const sizeConfig = buttonSizes[customization.buttonSize as keyof typeof buttonSizes] || buttonSizes.md;
+  cssProperties['--form-button-padding'] = sizeConfig.padding;
+  cssProperties['--form-button-font-size'] = sizeConfig.fontSize;
+}
+
+// Improve gradient background handling
+if (customization.colors?.backgroundType === 'gradient') {
+  const gradient = `linear-gradient(${customization.colors.backgroundGradientDirection || '135deg'}, ${customization.colors.backgroundGradientColor1 || '#3B82F6'}, ${customization.colors.backgroundGradientColor2 || '#6B7280'})`;
+  cssProperties['--form-background-value'] = gradient;
+  cssProperties['--form-background-gradient'] = gradient;
+}
+
+// Ensure pattern background properties are correctly generated
+if (customization.colors?.backgroundType === 'pattern') {
+  // Make sure solid background is set for patterns
+  cssProperties['--form-background-value'] = customization.colors.background || '#ffffff';
+  
+  // Ensure pattern is generated if pattern type exists
+  if (customization.colors.backgroundPattern && customization.colors.backgroundPattern !== 'none') {
+    const patternCSS = generateBackgroundPattern(
+      customization.colors.backgroundPattern,
+      customization.colors.backgroundPatternColor
+    );
+    cssProperties['--form-background-pattern'] = patternCSS;
+  }
+}
+
+console.log('🎯 Generated CSS properties:', cssProperties);
+
+const buttonProps = Object.keys(cssProperties).filter(key => key.includes('button'));
+console.log('🔘 Button properties generated:', buttonProps.map(key => ({
+  property: key,
+  value: cssProperties[key]
+})));
+
   return cssProperties;
 }
 
@@ -147,33 +196,59 @@ export function convertCustomizationToCSS(customization?: FormCustomization): Re
  * Generates React style object from customization
  */
 export function generateThemeStyle(customization?: FormCustomization): React.CSSProperties {
+  console.log('🚀 generateThemeStyle called with:', customization);
   const cssProperties = convertCustomizationToCSS(customization);
+
+  Object.entries(cssProperties).forEach(([property, value]) => {
+    document.documentElement.style.setProperty(property, value);
+  });
+    
   return cssProperties as React.CSSProperties;
 }
 
 /**
  * Creates a theme wrapper style object that includes background and container styling
+ * FIXED: Uses only specific background properties to avoid conflicts
  */
 export function createThemeWrapperStyle(customization?: FormCustomization): React.CSSProperties {
   const baseStyle = generateThemeStyle(customization);
+  
+  // FIXED: Use only specific background properties, never shorthand
   const backgroundStyle: React.CSSProperties = {};
   
   if (customization?.colors?.backgroundType === 'gradient' && customization?.colors?.backgroundValue) {
-    backgroundStyle.background = customization.colors.backgroundValue;
+    // For gradients: use backgroundImage and set other properties explicitly
+    backgroundStyle.backgroundColor = 'transparent';
+    backgroundStyle.backgroundImage = customization.colors.backgroundValue;
+    backgroundStyle.backgroundSize = 'cover';
+    backgroundStyle.backgroundRepeat = 'no-repeat';
+    backgroundStyle.backgroundAttachment = 'scroll';
+    backgroundStyle.backgroundPosition = 'center';
   } else if (customization?.colors?.backgroundType === 'pattern') {
+    // For patterns: set background color and pattern image
     backgroundStyle.backgroundColor = customization?.colors?.background || '#ffffff';
     backgroundStyle.backgroundImage = generateBackgroundPattern(
       customization?.colors?.backgroundPattern,
       customization?.colors?.backgroundPatternColor
     );
     backgroundStyle.backgroundSize = customization?.colors?.backgroundPatternSize || '20px';
+    backgroundStyle.backgroundRepeat = 'repeat';
+    backgroundStyle.backgroundAttachment = 'scroll';
+    backgroundStyle.backgroundPosition = 'center';
   } else {
+    // For solid colors: use backgroundColor and reset image properties
     backgroundStyle.backgroundColor = customization?.colors?.background || '#ffffff';
+    backgroundStyle.backgroundImage = 'none';
+    backgroundStyle.backgroundSize = 'auto';
+    backgroundStyle.backgroundRepeat = 'no-repeat';
+    backgroundStyle.backgroundAttachment = 'scroll';
+    backgroundStyle.backgroundPosition = 'center';
   }
   
   return {
     ...baseStyle,
-    backgroundColor: customization?.colors?.background || '#ffffff',
+    // FIXED: Don't override backgroundStyle.backgroundColor
+    ...backgroundStyle,
     color: customization?.colors?.text || '#1f2937',
     fontFamily: customization?.typography?.fontFamily || 'Inter, system-ui, sans-serif',
     minHeight: '100vh',
@@ -231,5 +306,5 @@ export function getContainerClasses(customization?: FormCustomization): string {
     right: 'ml-auto mr-0'
   };
 
-  return `max-w-[var(--form-max-width,600px)] ${alignmentClasses[alignment]} px-4`;
+  return `max-w-[var(--form-max-width,600px)] ${alignmentClasses[alignment]}`;
 }

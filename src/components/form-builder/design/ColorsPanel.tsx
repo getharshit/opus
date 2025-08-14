@@ -607,7 +607,7 @@ export const ColorsPanel: React.FC<ColorsPanelProps> = ({
                   <input
                     type="color"
                     value={rgbaToHex(
-                      colors.backgroundPatternColor || "rgba(0, 0, 0, 0.05)"
+                      colors.backgroundPatternColor || "rgba(0, 0, 0, 1)"
                     )}
                     onChange={(e) => {
                       // Convert hex to rgba with opacity

@@ -23,6 +23,8 @@ import {
   ArrowUp,
   ArrowDown,
   Keyboard,
+  AlertCircle,
+  X,
 } from "lucide-react";
 
 interface SingleColumnLayoutProps {
@@ -40,6 +42,7 @@ export const SingleColumnLayout: React.FC<SingleColumnLayoutProps> = ({
     {}
   );
 
+  // Background update system - FIXED to avoid CSS property conflicts
   useEffect(() => {
     const updateBackground = () => {
       const root = document.documentElement;
@@ -64,29 +67,54 @@ export const SingleColumnLayout: React.FC<SingleColumnLayoutProps> = ({
         backgroundPattern,
       });
 
+      // FIXED: Use only specific properties, avoid mixing shorthand with non-shorthand
       let newStyle: React.CSSProperties = {};
 
-      if (backgroundType === "gradient") {
+      if (
+        backgroundType === "gradient" &&
+        backgroundValue.includes("linear-gradient")
+      ) {
+        // For gradients, use backgroundImage and reset other properties
         newStyle = {
-          background: backgroundValue,
-          backgroundImage: "none",
+          backgroundColor: "transparent",
+          backgroundImage: backgroundValue,
+          backgroundSize: "auto",
+          backgroundRepeat: "no-repeat",
+          backgroundAttachment: "scroll",
+          backgroundPosition: "center",
         };
+        console.log("🌈 Applied gradient:", backgroundValue);
       } else if (backgroundType === "pattern") {
         const backgroundColor = computedStyle
           .getPropertyValue("--form-color-background")
           .trim()
           .replace(/['"]/g, "");
+
+        // For patterns, use backgroundImage for pattern and backgroundColor for base
         newStyle = {
           backgroundColor: backgroundColor || "#ffffff",
           backgroundImage:
             backgroundPattern !== "none" ? backgroundPattern : "none",
-          backgroundSize: "20px",
+          backgroundSize: "var(--form-background-pattern-size, 20px)",
           backgroundRepeat: "repeat",
+          backgroundAttachment: "scroll",
+          backgroundPosition: "center",
         };
+        console.log("🔲 Applied pattern:", {
+          backgroundColor,
+          backgroundPattern,
+        });
       } else {
+        // For solid colors, use backgroundColor and reset backgroundImage
         newStyle = {
           backgroundColor: backgroundValue || "#ffffff",
+          backgroundImage: "none",
+          backgroundSize: "auto",
+          backgroundRepeat: "no-repeat",
+          backgroundAttachment: "scroll",
+          backgroundPosition: "center",
         };
+        console.log("🎨 Applied solid:", backgroundValue);
       }
 
       setBackgroundStyle(newStyle);
@@ -101,6 +129,88 @@ export const SingleColumnLayout: React.FC<SingleColumnLayoutProps> = ({
     return () => clearInterval(interval);
   }, []);
 
+  // Dynamic button styles using CSS properties
+  const getButtonStyle = (
+    variant: "primary" | "secondary",
+    isSubmit: boolean = false
+  ) => {
+    const baseStyle: React.CSSProperties = {
+      padding: "var(--form-button-padding, 0.75rem 1.5rem)",
+      fontSize: "var(--form-button-font-size, 1rem)",
+      borderRadius: "var(--form-border-radius, 8px)",
+      fontWeight: "var(--form-font-weight-medium, 500)",
+      transition: "all 200ms ease",
+      border: "none",
+      cursor: "pointer",
+      display: "inline-flex",
+      alignItems: "center",
+      gap: "var(--form-spacing-xs, 0.5rem)",
+    };
+
+    const buttonStyle =
+      getComputedStyle(document.documentElement)
+        .getPropertyValue("--form-button-style")
+        .trim() || "filled";
+
+    if (variant === "primary") {
+      const backgroundColor = isSubmit
+        ? "var(--form-color-success, #10b981)"
+        : "var(--form-color-primary, #3b82f6)";
+
+      if (buttonStyle === "outlined") {
+        return {
+          ...baseStyle,
+          backgroundColor: "transparent",
+          color: backgroundColor
+            .replace("var(--form-color-", "var(--form-color-")
+            .replace(", ", ", "),
+          border: `2px solid ${backgroundColor}`,
+        };
+      } else if (buttonStyle === "ghost") {
+        return {
+          ...baseStyle,
+          backgroundColor: "transparent",
+          color: backgroundColor
+            .replace("var(--form-color-", "var(--form-color-")
+            .replace(", ", ", "),
+          border: "none",
+        };
+      } else {
+        // filled (default)
+        return {
+          ...baseStyle,
+          backgroundColor,
+          color: "var(--form-color-text-inverse, #ffffff)",
+          border: "none",
+        };
+      }
+    } else {
+      // secondary button
+      if (buttonStyle === "outlined") {
+        return {
+          ...baseStyle,
+          backgroundColor: "transparent",
+          color: "var(--form-color-border, #374151)",
+          border: "2px solid var(--form-color-border, #d1d5db)",
+        };
+      } else if (buttonStyle === "ghost") {
+        return {
+          ...baseStyle,
+          backgroundColor: "transparent",
+          color: "var(--form-color-text-primary, #374151)",
+          border: "none",
+        };
+      } else {
+        return {
+          ...baseStyle,
+          backgroundColor: "var(--form-color-surface, #ffffff)",
+          color: "var(--form-color-text-primary, #374151)",
+          border: "1px solid var(--form-color-border, #d1d5db)",
+        };
+      }
+    }
+  };
+
   const {
     currentStepFields,
     formState,
@@ -110,6 +220,8 @@ export const SingleColumnLayout: React.FC<SingleColumnLayoutProps> = ({
     submitForm,
     getFieldError,
     formMethods,
+    submitError, // ADD THIS
+    clearSubmitError,
   } = useFormContext();
 
   // Local state for single-column navigation
@@ -159,7 +271,6 @@ export const SingleColumnLayout: React.FC<SingleColumnLayoutProps> = ({
           JSON.parse(savedProgress);
         if (savedIndex && savedIndex < totalQuestions) {
           setCurrentQuestionIndex(savedIndex);
-          // Restore form data
           Object.keys(formData).forEach((key) => {
             formMethods.setValue(key, formData[key]);
           });
@@ -176,7 +287,6 @@ export const SingleColumnLayout: React.FC<SingleColumnLayoutProps> = ({
     if (questionElement && containerRef.current) {
       const container = containerRef.current;
       const offsetTop = questionElement.offsetTop - container.offsetTop - 100;
-
       container.scrollTo({
         top: offsetTop,
         behavior: "smooth",
@@ -188,16 +298,18 @@ export const SingleColumnLayout: React.FC<SingleColumnLayoutProps> = ({
   const handleNextQuestion = async () => {
     if (!currentField) return;
 
-    setIsValidating(true);
+    // Prevent multiple submissions
+    if (formState.isSubmitting) {
+      console.log("🚫 Form is already submitting, ignoring click");
+      return;
+    }
 
-    // Validate current field
+    setIsValidating(true);
     const fieldId = currentField.id;
     const isValid = await formMethods.trigger(fieldId);
-
     setIsValidating(false);
 
     if (!isValid) {
-      // Focus on the field with error
       const fieldElement = document.querySelector(
         `[data-field-id="${fieldId}"]`
       );
@@ -208,10 +320,14 @@ export const SingleColumnLayout: React.FC<SingleColumnLayoutProps> = ({
     }
 
     if (isLastQuestion) {
-      // Submit form
-      await submitForm();
+      // Only call submitForm once and wait for it to complete
+      try {
+        await submitForm();
+      } catch (error) {
+        console.error("Submit error in handleNextQuestion:", error);
+        // Error is already handled in submitForm, just log it here
+      }
     } else {
-      // Move to next question
       setDirection("forward");
       setCurrentQuestionIndex((prev) => prev + 1);
     }
@@ -224,17 +340,9 @@ export const SingleColumnLayout: React.FC<SingleColumnLayoutProps> = ({
     }
   };
 
-  const goToQuestion = (index: number) => {
-    if (index >= 0 && index < totalQuestions) {
-      setDirection(index > currentQuestionIndex ? "forward" : "backward");
-      setCurrentQuestionIndex(index);
-    }
-  };
-
   // Keyboard navigation
   useEffect(() => {
     const handleKeyDown = (event: KeyboardEvent) => {
-      // Don't interfere if user is typing in an input
       if (
         event.target instanceof HTMLInputElement ||
         event.target instanceof HTMLTextAreaElement ||
@@ -277,8 +385,7 @@ export const SingleColumnLayout: React.FC<SingleColumnLayoutProps> = ({
       if (fieldValue && !isLastQuestion) {
         const timer = setTimeout(() => {
           handleNextQuestion();
-        }, 800); // Small delay for better UX
-
+        }, 800);
         return () => clearTimeout(timer);
       }
     }
@@ -320,19 +427,18 @@ export const SingleColumnLayout: React.FC<SingleColumnLayoutProps> = ({
         className="sticky top-0 z-40 shadow-sm"
         style={{
           backgroundColor: "var(--form-color-surface, #ffffff)",
-          borderBottom: `1px solid var(--form-color-border, #e5e7eb)`,
+          borderBottom: "1px solid var(--form-color-border, #e5e7eb)",
           boxShadow: "var(--form-shadow-sm, 0 1px 2px 0 rgb(0 0 0 / 0.05))",
-          zIndex: "var(--form-z-index-dropdown, 40)",
+          zIndex: 40,
         }}
       >
         <div
-          className="max-w-2xl mx-auto px-4 py-4"
+          className="max-w-2xl mx-auto "
           style={{
             padding: "var(--form-spacing-md, 1rem)",
-            maxWidth: "42rem",
+            maxWidth: "var(--form-max-width, 42rem)",
           }}
         >
-          {/* Quesion Counter */}
           <div
             className="flex items-center justify-between"
             style={{ marginBottom: "var(--form-spacing-md, 1rem)" }}
@@ -340,7 +446,7 @@ export const SingleColumnLayout: React.FC<SingleColumnLayoutProps> = ({
             <div>
               <p
                 style={{
-                  fontSize: "0.875rem",
+                  fontSize: "var(--form-font-size-small, 0.875rem)",
                   color: "var(--form-color-text-secondary, #6b7280)",
                 }}
               >
@@ -348,7 +454,6 @@ export const SingleColumnLayout: React.FC<SingleColumnLayoutProps> = ({
               </p>
             </div>
 
-            {/* Progress Save Indicator */}
             <div
               className="flex items-center"
               style={{ gap: "var(--form-spacing-xs, 0.5rem)" }}
@@ -362,8 +467,7 @@ export const SingleColumnLayout: React.FC<SingleColumnLayoutProps> = ({
                   style={{
                     gap: "var(--form-spacing-xs, 0.25rem)",
                     color: "var(--form-color-success, #10b981)",
-                    fontSize:
-                      "var(--form-font-size-caption, var(--form-font-size-xs, 0.75rem))",
+                    fontSize: "var(--form-font-size-small, 0.75rem)",
                   }}
                 >
                   <Save className="w-3 h-3" />
@@ -376,34 +480,26 @@ export const SingleColumnLayout: React.FC<SingleColumnLayoutProps> = ({
                 onClick={() => setShowKeyboardShortcuts(!showKeyboardShortcuts)}
                 className="p-2 transition-colors"
                 style={{
-                  color: "var(--form-color-text-muted, #9ca3af)",
+                  color: "var(--form-color-text-secondary, #9ca3af)",
                   padding: "var(--form-spacing-xs, 0.5rem)",
-                  transitionDuration:
-                    "var(--form-transition-duration-normal, 200ms)",
+                  background: "transparent",
+                  border: "none",
+                  borderRadius: "var(--form-border-radius, 8px)",
+                  cursor: "pointer",
                 }}
                 title="Keyboard shortcuts"
-                onMouseEnter={(e) => {
-                  const target = e.currentTarget as HTMLElement;
-                  target.style.color =
-                    "var(--form-color-text-secondary, #6b7280)";
-                }}
-                onMouseLeave={(e) => {
-                  const target = e.currentTarget as HTMLElement;
-                  target.style.color = "var(--form-color-text-muted, #9ca3af)";
-                }}
               >
                 <Keyboard className="w-4 h-4" />
               </button>
             </div>
           </div>
 
-          {/* Progress Bar */}
           <AnimatedProgressIndicator
             progress={progressPercentage}
             type="bar"
             showPercentage={false}
             className="mb-2"
-            style={{ marginBottom: "var(--form-spacing-xs, 0.5rem )" }}
+            style={{ marginBottom: "var(--form-spacing-xs, 0.5rem)" }}
           />
         </div>
       </div>
@@ -417,8 +513,8 @@ export const SingleColumnLayout: React.FC<SingleColumnLayoutProps> = ({
             exit={{ opacity: 0 }}
             className="fixed inset-0 z-50 flex items-center justify-center p-4"
             style={{
-              backgroundColor: "var(--form-color-overlay, rgba(0, 0, 0, 0.5))",
-              zIndex: "var(--form-z-index-modal, 1000)",
+              backgroundColor: "rgba(0, 0, 0, 0.5)",
+              zIndex: 1000,
               padding: "var(--form-spacing-md, 1rem)",
             }}
             onClick={() => setShowKeyboardShortcuts(false)}
@@ -430,8 +526,8 @@ export const SingleColumnLayout: React.FC<SingleColumnLayoutProps> = ({
               className="max-w-sm w-full"
               style={{
                 backgroundColor: "var(--form-color-surface, #ffffff)",
-                borderRadius: "var(--form-border-radius-lg, 0.75rem)",
-                padding: "var(--form-spacing-lg, 1.5rem)",
+                borderRadius: "var(--form-border-radius, 0.75rem)",
+                padding: "var(--form-spacing-xl, 1.5rem)",
                 maxWidth: "24rem",
                 width: "100%",
               }}
@@ -440,9 +536,9 @@ export const SingleColumnLayout: React.FC<SingleColumnLayoutProps> = ({
               <h3
                 className="font-medium mb-4"
                 style={{
-                  fontSize: "var(--form-font-size-base, 1rem)",
+                  fontSize: "var(--form-font-size-title, 1rem)",
                   fontWeight: "var(--form-font-weight-medium, 500)",
-                  color: "var(--form-color-text-primary, #111827)",
+                  color: "var(--form-color-text, #111827)",
                   marginBottom: "var(--form-spacing-md, 1rem)",
                 }}
               >
@@ -451,94 +547,38 @@ export const SingleColumnLayout: React.FC<SingleColumnLayoutProps> = ({
               <div
                 className="space-y-2 text-sm"
                 style={{
-                  fontSize: "var(--form-font-size-sm, 0.875rem)",
-                  gap: "var(--form-spacing-xs, 0.5rem)",
+                  fontSize: "var(--form-font-size-small, 0.875rem)",
                 }}
               >
-                <div className="flex justify-between">
-                  <span
-                    style={{
-                      color: "var(--form-color-text-secondary, #6b7280)",
-                    }}
-                  >
-                    Next question
-                  </span>
-                  <span
-                    className="font-mono px-2 py-1 rounded"
-                    style={{
-                      fontFamily: "var(--form-font-family-mono, monospace)",
-                      backgroundColor: "var(--form-color-secondary, #f3f4f6)",
-                      padding:
-                        "var(--form-spacing-xs, 0.25rem) var(--form-spacing-xs, 0.5rem)",
-                      borderRadius: "var(--form-border-radius-sm, 0.25rem)",
-                    }}
-                  >
-                    ↓ or Enter
-                  </span>
-                </div>
-                <div className="flex justify-between">
-                  <span
-                    style={{
-                      color: "var(--form-color-text-secondary, #6b7280)",
-                    }}
-                  >
-                    Previous question
-                  </span>
-                  <span
-                    className="font-mono px-2 py-1 rounded"
-                    style={{
-                      fontFamily: "var(--form-font-family-mono, monospace)",
-                      backgroundColor: "var(--form-color-secondary, #f3f4f6)",
-                      padding:
-                        "var(--form-spacing-xs, 0.25rem) var(--form-spacing-xs, 0.5rem)",
-                      borderRadius: "var(--form-border-radius-sm, 0.25rem)",
-                    }}
-                  >
-                    ↑
-                  </span>
-                </div>
-                <div className="flex justify-between">
-                  <span
-                    style={{
-                      color: "var(--form-color-text-secondary, #6b7280)",
-                    }}
-                  >
-                    Toggle shortcuts
-                  </span>
-                  <span
-                    className="font-mono px-2 py-1 rounded"
-                    style={{
-                      fontFamily: "var(--form-font-family-mono, monospace)",
-                      backgroundColor: "var(--form-color-secondary, #f3f4f6)",
-                      padding:
-                        "var(--form-spacing-xs, 0.25rem) var(--form-spacing-xs, 0.5rem)",
-                      borderRadius: "var(--form-border-radius-sm, 0.25rem)",
-                    }}
-                  >
-                    ?
-                  </span>
-                </div>
-                <div className="flex justify-between">
-                  <span
-                    style={{
-                      color: "var(--form-color-text-secondary, #6b7280)",
-                    }}
-                  >
-                    Close
-                  </span>
-                  <span
-                    className="font-mono px-2 py-1 rounded"
-                    style={{
-                      fontFamily: "var(--form-font-family-mono, monospace)",
-                      backgroundColor: "var(--form-color-secondary, #f3f4f6)",
-                      padding:
-                        "var(--form-spacing-xs, 0.25rem) var(--form-spacing-xs, 0.5rem)",
-                      borderRadius: "var(--form-border-radius-sm, 0.25rem)",
-                    }}
-                  >
-                    Esc
-                  </span>
-                </div>
+                {[
+                  { action: "Next question", key: "↓ or Enter" },
+                  { action: "Previous question", key: "↑" },
+                  { action: "Toggle shortcuts", key: "?" },
+                  { action: "Close", key: "Esc" },
+                ].map((shortcut, index) => (
+                  <div key={index} className="flex justify-between">
+                    <span
+                      style={{
+                        color: "var(--form-color-text-secondary, #6b7280)",
+                      }}
+                    >
+                      {shortcut.action}
+                    </span>
+                    <span
+                      className="font-mono px-2 py-1 rounded"
+                      style={{
+                        fontFamily: "var(--form-font-family, monospace)",
+                        backgroundColor: "var(--form-color-border, #f3f4f6)",
+                        padding:
+                          "var(--form-spacing-xs, 0.25rem) var(--form-spacing-xs, 0.5rem)",
+                        borderRadius: "var(--form-border-radius, 0.25rem)",
+                        fontSize: "var(--form-font-size-small, 0.75rem)",
+                      }}
+                    >
+                      {shortcut.key}
+                    </span>
+                  </div>
+                ))}
               </div>
             </motion.div>
           </motion.div>
@@ -548,15 +588,15 @@ export const SingleColumnLayout: React.FC<SingleColumnLayoutProps> = ({
       {/* Main Content */}
       <div
         ref={containerRef}
-        className="max-w-2xl mx-auto px-4 py-8 min-h-screen"
+        className="max-w-2xl mx-auto min-h-screen"
         style={{
-          padding: "var(--form-spacing-2xl, 2rem) var(--form-spacing-md, 1rem)",
-          maxWidth: "42rem",
+          padding: "var(--form-spacing-xl, 2rem) var(--form-spacing-md, 1rem)",
+          maxWidth: "var(--form-max-width, 42rem)",
           minHeight: "100vh",
         }}
       >
         {/* Question Container */}
-        <div className="relative overflow-hidden min-h-[400px]">
+        <div className="relative min-h-[800px]">
           <AnimatePresence mode="wait" custom={direction}>
             <motion.div
               key={currentQuestionIndex}
@@ -578,11 +618,11 @@ export const SingleColumnLayout: React.FC<SingleColumnLayoutProps> = ({
                 className="shadow-sm p-8"
                 style={{
                   backgroundColor: "var(--form-color-surface, #ffffff)",
-                  borderRadius: "var(--form-border-radius-xl, 1rem)",
-                  border: `1px solid var(--form-color-border, #e5e7eb)`,
+                  borderRadius: "var(--form-border-radius, 1rem)",
+                  border: "1px solid var(--form-color-border, #e5e7eb)",
                   boxShadow:
                     "var(--form-shadow-sm, 0 1px 2px 0 rgb(0 0 0 / 0.05))",
-                  padding: "var(--form-spacing-2xl, 2rem)",
+                  padding: "var(--form-spacing-xl, 2rem)",
                 }}
               >
                 <FormQuestion
@@ -602,33 +642,23 @@ export const SingleColumnLayout: React.FC<SingleColumnLayoutProps> = ({
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.3 }}
           className="flex items-center justify-between"
-          style={{ marginTop: "var(--form-spacing-2xl, 2rem)" }}
+          style={{ marginTop: "var(--form-spacing-xl, 2rem)" }}
         >
           {/* Back Button */}
           <div className="flex-1">
             {!isFirstQuestion && (
-              <AnimatedButton
-                variant="secondary"
+              <button
                 onClick={handlePreviousQuestion}
                 disabled={isValidating}
-                className="inline-flex items-center gap-2 px-6 py-3 rounded-lg disabled:opacity-50"
+                className="inline-flex items-center disabled:opacity-50"
                 style={{
-                  color: "var(--form-color-text-primary, #374151)",
-                  backgroundColor: "var(--form-color-surface, #ffffff)",
-                  border: `1px solid var(--form-color-border, #d1d5db)`,
-                  borderRadius: "var(--form-border-radius-lg, 0.75rem)",
-                  padding:
-                    "var(--form-spacing-sm, 0.75rem) var(--form-spacing-lg, 1.5rem)",
-                  gap: "var(--form-spacing-xs, 0.5rem)",
-                  fontSize:
-                    "var(--form-font-size-button-text, var(--form-font-size-sm, 0.875rem))",
-                  fontWeight:
-                    "var(--form-font-weight-button-text, var(--form-font-weight-medium, 500))",
+                  ...getButtonStyle("secondary"),
+                  opacity: isValidating ? 0.5 : 1,
                 }}
               >
                 <ChevronLeft className="w-4 h-4" />
                 Previous
-              </AnimatedButton>
+              </button>
             )}
           </div>
 
@@ -641,7 +671,7 @@ export const SingleColumnLayout: React.FC<SingleColumnLayoutProps> = ({
               className="flex items-center text-sm"
               style={{
                 gap: "var(--form-spacing-xs, 0.5rem)",
-                fontSize: "var(--form-font-size-sm, 0.875rem)",
+                fontSize: "var(--form-font-size-small, 0.875rem)",
                 color: "var(--form-color-text-secondary, #6b7280)",
               }}
             >
@@ -661,25 +691,13 @@ export const SingleColumnLayout: React.FC<SingleColumnLayoutProps> = ({
 
           {/* Next/Submit Button */}
           <div className="flex-1 flex justify-end">
-            <AnimatedButton
-              variant="primary"
+            <button
               onClick={handleNextQuestion}
-              disabled={isValidating}
-              className={`inline-flex items-center gap-2 px-6 py-3 rounded-lg font-medium disabled:opacity-50`}
+              disabled={isValidating || formState.isSubmitting} // Disable during validation OR submission
+              className="inline-flex items-center disabled:opacity-50 disabled:cursor-not-allowed"
               style={{
-                color: "var(--form-color-text-inverse, #ffffff)",
-                backgroundColor: isLastQuestion
-                  ? "var(--form-color-success, #10b981)"
-                  : "var(--form-color-primary, #3b82f6)",
-                border: "none",
-                borderRadius: "var(--form-border-radius-lg, 0.75rem)",
-                padding:
-                  "var(--form-spacing-sm, 0.75rem) var(--form-spacing-lg, 1.5rem)",
-                gap: "var(--form-spacing-xs, 0.5rem)",
-                fontSize:
-                  "var(--form-font-size-button-text, var(--form-font-size-sm, 0.875rem))",
-                fontWeight:
-                  "var(--form-font-weight-button-text, var(--form-font-weight-medium, 500))",
+                ...getButtonStyle("primary", isLastQuestion),
+                opacity: isValidating || formState.isSubmitting ? 0.5 : 1,
               }}
             >
               {isValidating ? (
@@ -687,11 +705,22 @@ export const SingleColumnLayout: React.FC<SingleColumnLayoutProps> = ({
                   <div
                     className="w-4 h-4 border-2 border-t-transparent rounded-full animate-spin"
                     style={{
-                      borderColor: "var(--form-color-text-inverse, #ffffff)",
+                      borderColor: "currentColor",
                       borderTopColor: "transparent",
                     }}
                   />
                   Validating...
+                </>
+              ) : formState.isSubmitting ? (
+                <>
+                  <div
+                    className="w-4 h-4 border-2 border-t-transparent rounded-full animate-spin"
+                    style={{
+                      borderColor: "currentColor",
+                      borderTopColor: "transparent",
+                    }}
+                  />
+                  Submitting...
                 </>
               ) : isLastQuestion ? (
                 <>
@@ -704,9 +733,41 @@ export const SingleColumnLayout: React.FC<SingleColumnLayoutProps> = ({
                   <ChevronRight className="w-4 h-4" />
                 </>
               )}
-            </AnimatedButton>
+            </button>
           </div>
         </motion.div>
+
+        {/* Submit Error Display - ADD THIS SECTION */}
+        {submitError && (
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -20 }}
+            className="mt-4 p-4 rounded-lg border"
+            style={{
+              backgroundColor: "var(--form-color-error, #fef2f2)",
+              borderColor: "var(--form-color-error, #ef4444)",
+              color: "var(--form-color-error, #ef4444)",
+            }}
+          >
+            <div className="flex items-start gap-3">
+              <AlertCircle className="w-5 h-5 flex-shrink-0 mt-0.5" />
+              <div className="flex-1">
+                <h4 className="font-medium mb-1">Submission Error</h4>
+                <p className="text-sm">{submitError}</p>
+              </div>
+              <button
+                onClick={clearSubmitError}
+                className="p-1 hover:bg-red-100 rounded transition-colors"
+                style={{
+                  color: "var(--form-color-error, #ef4444)",
+                }}
+              >
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+          </motion.div>
+        )}
 
         {/* Navigation Hints */}
         <motion.div
@@ -717,32 +778,24 @@ export const SingleColumnLayout: React.FC<SingleColumnLayoutProps> = ({
           style={{
             marginTop: "var(--form-spacing-lg, 1.5rem)",
             gap: "var(--form-spacing-lg, 1.5rem)",
-            fontSize:
-              "var(--form-font-size-caption, var(--form-font-size-xs, 0.75rem))",
-            color: "var(--form-color-text-muted, #9ca3af)",
+            fontSize: "var(--form-font-size-small, 0.75rem)",
+            color: "var(--form-color-text-secondary, #9ca3af)",
           }}
         >
-          <div
-            className="flex items-center"
-            style={{ gap: "var(--form-spacing-xs, 0.25rem)" }}
-          >
-            <ArrowUp className="w-3 h-3" />
-            <span>Previous</span>
-          </div>
-          <div
-            className="flex items-center"
-            style={{ gap: "var(--form-spacing-xs, 0.25rem)" }}
-          >
-            <ArrowDown className="w-3 h-3" />
-            <span>Next</span>
-          </div>
-          <div
-            className="flex items-center"
-            style={{ gap: "var(--form-spacing-xs, 0.25rem)" }}
-          >
-            <Keyboard className="w-3 h-3" />
-            <span>Press ? for shortcuts</span>
-          </div>
+          {[
+            { icon: ArrowUp, text: "Previous" },
+            { icon: ArrowDown, text: "Next" },
+            { icon: Keyboard, text: "Press ? for shortcuts" },
+          ].map((hint, index) => (
+            <div
+              key={index}
+              className="flex items-center"
+              style={{ gap: "var(--form-spacing-xs, 0.25rem)" }}
+            >
+              <hint.icon className="w-3 h-3" />
+              <span>{hint.text}</span>
+            </div>
+          ))}
         </motion.div>
 
         {/* Mobile Bottom Navigation */}
@@ -750,7 +803,7 @@ export const SingleColumnLayout: React.FC<SingleColumnLayoutProps> = ({
           className="fixed bottom-0 left-0 right-0 p-4 md:hidden"
           style={{
             backgroundColor: "var(--form-color-surface, #ffffff)",
-            borderTop: `1px solid var(--form-color-border, #e5e7eb)`,
+            borderTop: "1px solid var(--form-color-border, #e5e7eb)",
             padding: "var(--form-spacing-md, 1rem)",
           }}
         >
@@ -758,55 +811,38 @@ export const SingleColumnLayout: React.FC<SingleColumnLayoutProps> = ({
             className="max-w-2xl mx-auto flex items-center justify-between"
             style={{ gap: "var(--form-spacing-sm, 0.75rem)" }}
           >
-            <AnimatedButton
-              variant="secondary"
+            <button
               onClick={handlePreviousQuestion}
               disabled={isFirstQuestion || isValidating}
-              className="flex items-center gap-2 px-4 py-2 text-sm"
+              className="flex items-center text-sm"
               style={{
-                color: "var(--form-color-text-primary, #374151)",
-                backgroundColor: "var(--form-color-surface, #ffffff)",
-                border: `1px solid var(--form-color-border, #d1d5db)`,
-                borderRadius: "var(--form-border-radius-md, 0.5rem)",
-                padding:
-                  "var(--form-spacing-xs, 0.5rem) var(--form-spacing-md, 1rem)",
-                gap: "var(--form-spacing-xs, 0.5rem)",
-                fontSize:
-                  "var(--form-font-size-button-text, var(--form-font-size-sm, 0.875rem))",
+                ...getButtonStyle("secondary"),
+                fontSize: "var(--form-font-size-small, 0.875rem)",
+                opacity: isFirstQuestion || isValidating ? 0.5 : 1,
               }}
             >
               <ChevronLeft className="w-4 h-4" />
               Back
-            </AnimatedButton>
+            </button>
 
             <div
               className="text-sm"
               style={{
-                fontSize:
-                  "var(--form-font-size-caption, var(--form-font-size-sm, 0.875rem))",
+                fontSize: "var(--form-font-size-small, 0.875rem)",
                 color: "var(--form-color-text-secondary, #6b7280)",
               }}
             >
               {currentQuestionIndex + 1} / {totalQuestions}
             </div>
 
-            <AnimatedButton
-              variant="primary"
+            <button
               onClick={handleNextQuestion}
               disabled={isValidating}
-              className={`flex items-center gap-2 px-4 py-2 text-sm`}
+              className="flex items-center text-sm"
               style={{
-                color: "var(--form-color-text-inverse, #ffffff)",
-                backgroundColor: isLastQuestion
-                  ? "var(--form-color-success, #10b981)"
-                  : "var(--form-color-primary, #3b82f6)",
-                border: "none",
-                borderRadius: "var(--form-border-radius-md, 0.5rem)",
-                padding:
-                  "var(--form-spacing-xs, 0.5rem) var(--form-spacing-md, 1rem)",
-                gap: "var(--form-spacing-xs, 0.5rem)",
-                fontSize:
-                  "var(--form-font-size-button-text, var(--form-font-size-sm, 0.875rem))",
+                ...getButtonStyle("primary", isLastQuestion),
+                fontSize: "var(--form-font-size-small, 0.875rem)",
+                opacity: isValidating ? 0.5 : 1,
               }}
             >
               {isLastQuestion ? (
@@ -820,7 +856,7 @@ export const SingleColumnLayout: React.FC<SingleColumnLayoutProps> = ({
                   <ChevronRight className="w-4 h-4" />
                 </>
               )}
-            </AnimatedButton>
+            </button>
           </div>
         </div>
       </div>

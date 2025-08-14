@@ -5,6 +5,8 @@ import { useParams } from "next/navigation";
 import { Form, FormField, ExtendedFieldType } from "@/types/form";
 import FormBuilderSidebar from "@/components/form-builder/FormBuilderSidebar";
 import QuestionEditor from "@/components/form-builder/QuestionEditor";
+import FieldPropertiesSidebar from "@/components/form-builder/FieldPropertiesSidebar";
+import { FormBuilderFocusProvider } from "@/components/form-builder/context/FormBuilderFocusContext";
 import { LiveFormPreview } from "@/components/form-builder/design/LiveFormPreview";
 import FormSettings from "@/components/form-builder/FormSettings";
 import LoadingState from "@/components/ui/LoadingState";
@@ -20,7 +22,6 @@ export default function FormBuilderPage() {
 
   const [form, setForm] = useState<Form | null>(null);
   const [isLoading, setIsLoading] = useState(true);
-  const [activeField, setActiveField] = useState<string | null>(null);
   const [showPreview, setShowPreview] = useState(false);
   const [showShareModal, setShowShareModal] = useState(false);
   const [currentStep, setCurrentStep] = useState<BuilderStep>("build");
@@ -92,8 +93,6 @@ export default function FormBuilderPage() {
     updateForm({
       fields: [...form.fields, newField],
     });
-
-    setActiveField(newField.id);
   };
 
   const updateField = (fieldId: string, updates: Partial<FormField>) => {
@@ -112,10 +111,6 @@ export default function FormBuilderPage() {
     updateForm({
       fields: form.fields.filter((field) => field.id !== fieldId),
     });
-
-    if (activeField === fieldId) {
-      setActiveField(null);
-    }
   };
 
   const reorderFields = (startIndex: number, endIndex: number) => {
@@ -140,49 +135,39 @@ export default function FormBuilderPage() {
     switch (currentStep) {
       case "build":
         return (
-          <div className="grid grid-cols-12 gap-6">
-            {/* Sidebar */}
-            <div className="col-span-3">
-              <FormBuilderSidebar onAddField={addField} />
-            </div>
-
-            {/* Main Editor */}
-            <div className={`${showPreview ? "col-span-5" : "col-span-9"}`}>
-              <div className="space-y-4">
-                {form && (
-                  <>
-                    <FormSettings form={form} onUpdate={updateForm} />
-
-                    <QuestionEditor
-                      fields={form.fields}
-                      activeField={activeField}
-                      onFieldSelect={setActiveField}
-                      onFieldUpdate={updateField}
-                      onFieldDelete={deleteField}
-                      onReorder={reorderFields}
-                    />
-                  </>
-                )}
+          <FormBuilderFocusProvider formId={formId}>
+            <div className="grid grid-cols-12 gap-6">
+              {/* Left Sidebar - Field Palette */}
+              <div className="col-span-2">
+                <FormBuilderSidebar onAddField={addField} />
               </div>
-            </div>
 
-            {/* Live Preview */}
-            {showPreview && (
-              <div className="col-span-4">
-                <div className="sticky top-24">
+              {/* Main Editor */}
+              <div className={`${showPreview ? "col-span-5" : "col-span-7"}`}>
+                <div className="space-y-4">
                   {form && (
-                    <LiveFormPreview
-                      form={form}
-                      localColors={form.customization?.colors || {}}
-                      localTypography={form.customization?.typography || {}}
-                      localLayout={form.customization || {}}
-                      localAnimations={form.customization?.animations || {}}
-                    />
+                    <>
+                      <FormSettings form={form} onUpdate={updateForm} />
+
+                      <QuestionEditor
+                        fields={form.fields}
+                        onFieldUpdate={updateField}
+                        onFieldDelete={deleteField}
+                        onReorder={reorderFields}
+                      />
+                    </>
                   )}
                 </div>
               </div>
-            )}
-          </div>
+
+              {/* Right Sidebar - Field Properties */}
+              <div className="col-span-3">
+                <div className="sticky top-24">
+                  <FieldPropertiesSidebar onFieldUpdate={updateField} />
+                </div>
+              </div>
+            </div>
+          </FormBuilderFocusProvider>
         );
 
       case "design":
@@ -310,7 +295,7 @@ export default function FormBuilderPage() {
       />
 
       {/* Main Content */}
-      <div className="max-w-7xl mx-auto px-4 py-6">{renderStepContent()}</div>
+      <div className="max-w-8xl mx-auto px-4 py-6">{renderStepContent()}</div>
 
       {/* Share Modal */}
       {showShareModal && (

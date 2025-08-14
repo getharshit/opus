@@ -6,6 +6,7 @@ import React, {
   useEffect,
   useMemo,
   useRef,
+  useState,
 } from "react";
 import {
   useForm,
@@ -58,6 +59,10 @@ interface FormContextValue {
   setFieldValue: (fieldId: string, value: any) => void;
   isFieldTouched: (fieldId: string) => boolean;
   getFieldError: (fieldId: string) => string | undefined;
+
+  // ADDED: Error state management
+  submitError: string | null;
+  clearSubmitError: () => void;
 }
 
 const FormContext = createContext<FormContextValue | null>(null);
@@ -117,6 +122,9 @@ export const FormProvider: React.FC<FormProviderProps> = ({
   initialData = {},
   children,
 }) => {
+  // ADDED: Submit error state
+  const [submitError, setSubmitError] = useState<string | null>(null);
+
   // Validation setup
   const { validationSchema, validateField, validateAll } = useFormValidation(
     form.fields
@@ -267,6 +275,9 @@ export const FormProvider: React.FC<FormProviderProps> = ({
   };
 
   const validateCurrentStep = async (): Promise<boolean> => {
+    // Clear any previous submit errors when validation is attempted
+    setSubmitError(null);
+
     const fieldsToValidate = currentStepFields.map((field) => field.id);
     const result = await trigger(fieldsToValidate);
 
@@ -279,22 +290,75 @@ export const FormProvider: React.FC<FormProviderProps> = ({
     return result;
   };
 
+  // FIXED: Enhanced submit function with double-submission prevention
   const submitForm = async () => {
+    // Prevent double submissions
+    if (formState.isSubmitting) {
+      console.log("🚫 Form already submitting, ignoring duplicate call");
+      return;
+    }
+
+    console.log("🚀 Starting form submission...");
+
     setFormState((prev) => ({ ...prev, isSubmitting: true }));
+    setSubmitError(null); // Clear any previous errors
 
     try {
-      // Validate entire form
+      // Validate entire form first
+      console.log("📋 Validating form...");
       const isValid = await trigger();
 
-      if (isValid) {
-        const formData = getValues();
-        await onSubmit(formData);
+      if (!isValid) {
+        console.log("❌ Form validation failed");
+        setSubmitError(
+          "Please check all required fields and correct any errors."
+        );
+        return;
       }
+
+      const formData = getValues();
+      console.log("📤 Submitting form data:", formData);
+      console.log("🎯 Form ID:", form?.id);
+
+      // Call the onSubmit function from parent component
+      await onSubmit(formData);
+
+      console.log("✅ Form submitted successfully");
     } catch (error) {
-      console.error("Form submission error:", error);
+      console.error("💥 Form submission error:", error);
+
+      // Enhanced error handling with user-friendly messages
+      let userMessage =
+        "An unexpected error occurred while submitting the form.";
+
+      if (error instanceof Error) {
+        // Handle specific error types
+        if (error.message.includes("Validation failed")) {
+          userMessage = "Please check your responses and try again.";
+        } else if (error.message.includes("Form not found")) {
+          userMessage = "This form is no longer available.";
+        } else if (error.message.includes("already submitted")) {
+          userMessage = "You have already submitted a response to this form.";
+        } else if (error.message.includes("Failed to submit form")) {
+          userMessage =
+            "Unable to submit the form. Please check your internet connection and try again.";
+        } else {
+          // Use the original error message if it's user-friendly
+          userMessage = error.message;
+        }
+      }
+
+      setSubmitError(userMessage);
+
+      // Don't re-throw the error - handle it gracefully
     } finally {
       setFormState((prev) => ({ ...prev, isSubmitting: false }));
     }
+  };
+
+  // ADDED: Function to clear submit errors
+  const clearSubmitError = () => {
+    setSubmitError(null);
   };
 
   // Utility functions
@@ -332,12 +396,21 @@ export const FormProvider: React.FC<FormProviderProps> = ({
     setFieldValue,
     isFieldTouched,
     getFieldError,
+    submitError, // ADDED
+    clearSubmitError, // ADDED
   };
 
   return (
     <FormContext.Provider value={contextValue}>
       <RHFFormProvider {...formMethods}>
-        <form onSubmit={handleSubmit(submitForm)} noValidate>
+        {/* FIXED: Prevent default form submission and double submission */}
+        <form
+          onSubmit={(e) => {
+            e.preventDefault(); // Prevent default HTML form submission
+            // Don't call submitForm here - let components handle it manually
+          }}
+          noValidate
+        >
           {children}
         </form>
       </RHFFormProvider>

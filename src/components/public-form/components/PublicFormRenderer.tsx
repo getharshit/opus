@@ -50,7 +50,7 @@ const FormContent: React.FC = () => {
   // The layout handles everything internally
   return (
     <div className="form-theme-wrapper min-h-screen" style={themeStyle}>
-      <div className={`py-8 ${containerClasses}`}>
+      <div className={` ${containerClasses}`}>
         {isMultiStep ? (
           <MultiStepLayout
             form={form}

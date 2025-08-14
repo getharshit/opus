@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { FormField, ExtendedFieldType } from "@/types/form";
-import { GripVertical, Trash2, Settings } from "lucide-react";
+import { GripVertical, Trash2 } from "lucide-react";
 
 // Import field editors
 import {
@@ -22,10 +22,6 @@ import {
   PostSubmissionEditor,
 } from "./field-editors";
 
-// Import shared components
-import ValidationEditor from "./shared/ValidationEditor";
-import DisplayOptionsEditor from "./shared/DisplayOptionsEditor";
-
 interface QuestionTileProps {
   field: FormField;
   isActive: boolean;
@@ -44,7 +40,6 @@ export default function QuestionTile({
   dragHandleProps,
 }: QuestionTileProps) {
   const [localLabel, setLocalLabel] = useState(field.label);
-  const [showAdvancedSettings, setShowAdvancedSettings] = useState(false);
 
   const handleLabelBlur = () => {
     if (localLabel !== field.label) {
@@ -57,59 +52,12 @@ export default function QuestionTile({
     onUpdate({ [property]: value });
   };
 
-  // Helper functions to determine what settings to show
-  const shouldShowAdvancedSettings = (): boolean => {
-    const advancedFieldTypes = [
-      "shortText",
-      "longText",
-      "email",
-      "website",
-      "phoneNumber",
-      "multipleChoice",
-      "dropdown",
-      "yesNo",
-      "numberRating",
-      "legal",
-      "statement",
-      "fileUpload",
-      "startingPage",
-      "postSubmission",
-    ];
-    return advancedFieldTypes.includes(field.type);
-  };
-
-  const shouldShowValidation = (): boolean => {
-    const validationFieldTypes = [
-      "shortText",
-      "longText",
-      "email",
-      "website",
-      "phoneNumber",
-      "legal",
-    ];
-    return validationFieldTypes.includes(field.type);
-  };
-
-  const shouldShowDisplayOptions = (): boolean => {
-    const displayFieldTypes = [
-      "shortText",
-      "longText",
-      "email",
-      "website",
-      "phoneNumber",
-      "multipleChoice",
-      "dropdown",
-      "yesNo",
-      "numberRating",
-    ];
-    return displayFieldTypes.includes(field.type);
-  };
-
   // Render field editor based on type
   const renderFieldEditor = () => {
     const editorProps = {
       field,
       onUpdate: updateFieldProperty,
+      previewOnly: true, // Add this line to hide settings tabs
     };
 
     switch (field.type) {
@@ -242,41 +190,22 @@ export default function QuestionTile({
         </button>
       </div>
 
-      {/* Question Settings Panel */}
+      {/* Basic Settings Panel - Only when active */}
       {isActive && (
         <div className="border-t border-gray-100">
-          {/* Basic Settings Row */}
           <div className="px-4 py-3 flex items-center justify-between">
-            <div className="flex items-center gap-4">
-              <label className="flex items-center gap-2 text-sm">
-                <input
-                  type="checkbox"
-                  checked={field.required}
-                  onChange={(e) => onUpdate({ required: e.target.checked })}
-                  className="text-blue-600"
-                />
-                <span className="text-gray-700">Required</span>
-              </label>
+            {/* Required Toggle */}
+            <label className="flex items-center gap-2 text-sm">
+              <input
+                type="checkbox"
+                checked={field.required}
+                onChange={(e) => onUpdate({ required: e.target.checked })}
+                className="text-blue-600"
+              />
+              <span className="text-gray-700">Required</span>
+            </label>
 
-              {/* Only show advanced settings for field types that support validation/display options */}
-              {shouldShowAdvancedSettings() && (
-                <button
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    setShowAdvancedSettings(!showAdvancedSettings);
-                  }}
-                  className={`flex items-center gap-2 text-sm px-2 py-1 rounded transition-colors ${
-                    showAdvancedSettings
-                      ? "bg-blue-100 text-blue-700"
-                      : "text-gray-600 hover:bg-gray-100"
-                  }`}
-                >
-                  <Settings className="w-4 h-4" />
-                  {showAdvancedSettings ? "Hide Settings" : "More Settings"}
-                </button>
-              )}
-            </div>
-
+            {/* Field Type Selector */}
             <select
               value={field.type}
               onChange={(e) =>
@@ -314,38 +243,6 @@ export default function QuestionTile({
               </optgroup>
             </select>
           </div>
-
-          {/* Advanced Settings Panel */}
-          {showAdvancedSettings && shouldShowAdvancedSettings() && (
-            <div className="border-t border-gray-100 bg-gray-50">
-              {/* Simple Validation and Display Options */}
-              <div className="px-4 py-3 space-y-4">
-                {shouldShowValidation() && (
-                  <div>
-                    <h4 className="text-sm font-medium text-gray-700 mb-2">
-                      Validation
-                    </h4>
-                    <ValidationEditor
-                      field={field}
-                      onUpdate={updateFieldProperty}
-                    />
-                  </div>
-                )}
-
-                {shouldShowDisplayOptions() && (
-                  <div>
-                    <h4 className="text-sm font-medium text-gray-700 mb-2">
-                      Display Options
-                    </h4>
-                    <DisplayOptionsEditor
-                      field={field}
-                      onUpdate={updateFieldProperty}
-                    />
-                  </div>
-                )}
-              </div>
-            </div>
-          )}
         </div>
       )}
     </div>

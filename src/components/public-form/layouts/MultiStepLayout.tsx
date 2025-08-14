@@ -658,7 +658,7 @@ export const MultiStepLayout: React.FC<MultiStepLayoutProps> = ({
           )}
 
           {/* Animated Step Content */}
-          <div className="relative overflow-hidden min-h-[400px]">
+          <div className="relative overflow-hidden min-h-[500px]">
             <AnimatePresence mode="wait" custom={direction}>
               <motion.div
                 key={currentStepIndex}

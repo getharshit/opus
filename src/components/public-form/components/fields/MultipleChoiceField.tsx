@@ -41,6 +41,9 @@ export const MultipleChoiceField: React.FC<MultipleChoiceFieldProps> = ({
   const hasOtherOption =
     field.options?.includes("Other") || field.options?.includes("other");
 
+  // FIXED: Remove duplicates from options to prevent key conflicts
+  const uniqueOptions = field.options ? [...new Set(field.options)] : [];
+
   const handleOptionSelect = (option: string) => {
     if (option.toLowerCase() === "other") {
       setShowOtherInput(true);
@@ -66,7 +69,7 @@ export const MultipleChoiceField: React.FC<MultipleChoiceFieldProps> = ({
     option: string,
     index: number
   ) => {
-    const options = field.options || [];
+    const options = uniqueOptions; // Use deduplicated options
 
     switch (event.key) {
       case "ArrowDown":
@@ -117,13 +120,13 @@ export const MultipleChoiceField: React.FC<MultipleChoiceFieldProps> = ({
           aria-labelledby={`question-${field.id}`}
           aria-describedby={hasError ? `error-${field.id}` : undefined}
         >
-          {field.options?.map((option, index) => {
+          {uniqueOptions.map((option, index) => {
             const selected = isSelected(option);
             const isOtherOption = option.toLowerCase() === "other";
 
             return (
               <motion.div
-                key={option}
+                key={`${field.id}-option-${index}-${option}`} // FIXED: Use unique key combining field ID, index, and option
                 initial={{ opacity: 0, x: -20 }}
                 animate={{ opacity: 1, x: 0 }}
                 transition={{

@@ -170,6 +170,11 @@ export const DesignStep: React.FC<DesignStepProps> = ({ form, onUpdate }) => {
 
   const debouncedUpdateLayout = useCallback(
     debounce((layout: any) => {
+      console.log("💽 Saving layout to database:", {
+        buttonStyle: layout.buttonStyle,
+        buttonSize: layout.buttonSize,
+        fullLayout: layout,
+      });
       onUpdate({
         customization: {
           ...form.customization,
@@ -220,7 +225,12 @@ export const DesignStep: React.FC<DesignStepProps> = ({ form, onUpdate }) => {
   const updateLayout = useCallback(
     (layoutUpdates: any) => {
       const newLayout = { ...localLayout, ...layoutUpdates };
+      console.log("🏗️ DesignStep updateLayout called with:", layoutUpdates);
       setLocalLayout(newLayout);
+      console.log("💾 About to save to database:", {
+        buttonStyle: layoutUpdates.buttonStyle || newLayout.buttonStyle,
+        buttonSize: layoutUpdates.buttonSize || newLayout.buttonSize,
+      });
       debouncedUpdateLayout(newLayout);
     },
     [localLayout, debouncedUpdateLayout]
@@ -442,7 +452,7 @@ export const DesignStep: React.FC<DesignStepProps> = ({ form, onUpdate }) => {
                   </p>
                 </div>
 
-                <div className="p-4 max-h-[60vh] overflow-y-auto">
+                <div className=" max-h-[70vh] overflow-y-hidden overflow-x-hidden">
                   {/* Scale down the preview to fit in sidebar */}
                   <div className="transform scale-75 origin-top-left w-[133%]">
                     <PublicFormRenderer

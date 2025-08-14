@@ -4,11 +4,13 @@ import BaseFieldEditor from "../BaseFieldEditor";
 interface ShortTextEditorProps {
   field: FormField;
   onUpdate: (property: string, value: any) => void;
+  previewOnly?: boolean; // New prop to control display mode
 }
 
 export default function ShortTextEditor({
   field,
   onUpdate,
+  previewOnly = false,
 }: ShortTextEditorProps) {
   const preview = (
     <div className="relative">
@@ -31,6 +33,12 @@ export default function ShortTextEditor({
     </div>
   );
 
+  // If preview only, return just the preview
+  if (previewOnly) {
+    return preview;
+  }
+
+  // Otherwise, return full editor with settings
   const basicSettings = (
     <div className="space-y-3">
       <div>

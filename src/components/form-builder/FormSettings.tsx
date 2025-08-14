@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { Form } from "@/types/form";
-import { Settings, Palette } from "lucide-react";
+import { Settings, Palette, Users, Shield, Info } from "lucide-react";
 
 interface FormSettingsProps {
   form: Form;
@@ -9,6 +9,28 @@ interface FormSettingsProps {
 
 export default function FormSettings({ form, onUpdate }: FormSettingsProps) {
   const [isExpanded, setIsExpanded] = useState(false);
+
+  // Get current settings with defaults
+  const currentSettings = {
+    allowMultipleSubmissions: form.settings?.allowMultipleSubmissions ?? false,
+    collectIPAddress: form.settings?.collectIPAddress ?? true,
+    collectUserAgent: form.settings?.collectUserAgent ?? true,
+    showPrivacyNotice: form.settings?.showPrivacyNotice ?? false,
+    requireAllFields: form.settings?.requireAllFields ?? false,
+    customSubmissionMessage: form.settings?.customSubmissionMessage ?? "",
+    ...form.settings,
+  };
+
+  const updateSetting = (key: string, value: any) => {
+    const updatedSettings = {
+      ...currentSettings,
+      [key]: value,
+    };
+
+    onUpdate({
+      settings: updatedSettings,
+    });
+  };
 
   return (
     <div className="bg-white rounded-lg border border-gray-200">
@@ -41,7 +63,6 @@ export default function FormSettings({ form, onUpdate }: FormSettingsProps) {
             placeholder="Untitled Form"
           />
         </div>
-
         <div>
           <textarea
             value={form.description || ""}
@@ -55,33 +76,55 @@ export default function FormSettings({ form, onUpdate }: FormSettingsProps) {
 
       {/* Extended Settings */}
       {isExpanded && (
-        <div className="p-4 border-t border-gray-200 space-y-4">
+        <div className="p-4 border-t border-gray-200 space-y-6">
+          {/* NEW: Submission Settings Section */}
           <div>
-            <label className="flex items-center gap-2 text-sm font-medium text-gray-700 mb-2">
-              <Palette className="w-4 h-4" />
-              Theme Color
+            <label className="flex items-center gap-2 text-sm font-medium text-gray-700 mb-3">
+              <Users className="w-4 h-4" />
+              Submission Settings
             </label>
-            <div className="flex gap-2">
-              {["#3b82f6", "#ef4444", "#10b981", "#f59e0b", "#8b5cf6"].map(
-                (color) => (
-                  <button
-                    key={color}
-                    onClick={() =>
-                      onUpdate({
-                        theme: { ...form.theme, primaryColor: color },
-                      })
+
+            {/* Multiple Submissions Toggle */}
+            <div className="space-y-3">
+              <div className="flex items-start justify-between">
+                <div className="flex-1">
+                  <div className="text-sm font-medium text-gray-900">
+                    Allow Multiple Submissions
+                  </div>
+                  <p className="text-xs text-gray-500 mt-1">
+                    When enabled, users can submit responses multiple times
+                  </p>
+                  {/* Status indicator */}
+                  <div
+                    className={`mt-2 inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs ${
+                      currentSettings.allowMultipleSubmissions
+                        ? "bg-green-100 text-green-800"
+                        : "bg-amber-100 text-amber-800"
+                    }`}
+                  >
+                    <Info className="w-3 h-3" />
+                    {currentSettings.allowMultipleSubmissions
+                      ? "Multiple submissions allowed"
+                      : "One submission per IP"}
+                  </div>
+                </div>
+
+                {/* Custom Tailwind Toggle */}
+                <label className="relative inline-flex items-center cursor-pointer ml-3">
+                  <input
+                    type="checkbox"
+                    checked={currentSettings.allowMultipleSubmissions}
+                    onChange={(e) =>
+                      updateSetting(
+                        "allowMultipleSubmissions",
+                        e.target.checked
+                      )
                     }
-                    className="w-8 h-8 rounded-md border-2 border-white shadow-sm"
-                    style={{
-                      backgroundColor: color,
-                      borderColor:
-                        form.theme.primaryColor === color
-                          ? "#374151"
-                          : "#ffffff",
-                    }}
+                    className="sr-only peer"
                   />
-                )
-              )}
+                  <div className="relative w-9 h-5 bg-gray-200 peer-focus:outline-none peer-focus:ring-2 peer-focus:ring-blue-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-blue-600"></div>
+                </label>
+              </div>
             </div>
           </div>
         </div>
